@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVENT HUB - Dashboard</title>
+    <link rel="stylesheet" href="home_styles.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Styling for the new profile element */
+        .profile-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-right: 20px;
+            order: 1; 
+            flex-shrink: 0; 
+            max-width: 250px; /* Increased max width */
+            padding: 5px;
+            cursor: pointer; /* Indicate it's clickable */
+            border: 1px solid transparent;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .profile-container:hover {
+            background-color: rgba(255, 75, 43, 0.1); /* Light hover effect */
+            border-color: var(--primary-color);
+        }
+        .profile-pic {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-color);
+            flex-shrink: 0; 
+        }
+        .username-display {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.0em;
+            text-overflow: ellipsis; 
+            overflow: hidden; 
+            white-space: nowrap;
+        }
+        body.dark-mode .username-display {
+            color: var(--dark-text);
+        }
+        
+        /* Dark Mode Button Styles */
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0 15px;
+            transition: color 0.3s;
+            flex-shrink: 0;
+            order: 2; 
+        }
+        .logout-btn {
+            order: 3; 
+            margin-left: 10px;
+        }
+        
+        /* Modal styles are kept minimal here */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+        .modal-content { margin: auto; display: block; width: 80%; max-width: 700px; max-height: 90%; border-radius: 10px; }
+        .modal-content img { width: 100%; height: auto; display: block; border-radius: 10px; }
+        .close-btn { position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; }
+        .close-btn:hover, .close-btn:focus { color: #bbb; text-decoration: none; cursor: pointer; }
+        
+        /* --- Profile Modal Specific Styles (Single Column) --- */
+        #profileModalContent {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 450px; 
+            text-align: center;
+        }
+        #profileModalContent label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 700;
+            text-align: left;
+        }
+        #profileModalContent input[type="file"],
+        #profileModalContent input[type="text"],
+        #profileModalContent select,
+        #profileModalContent textarea { 
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+            cursor: default;
+        }
+        #profileModalContent input[type="text"]:read-only {
+            background-color: #eee;
+            cursor: not-allowed;
+            color: #777;
+        }
+        #profileModalContent button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 5px;
+            border: none; /* Resetting button border */
+            cursor: pointer;
+        }
+        
+        #profileModalContent #currentPicPreview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border: 3px solid var(--primary-color);
+            display: block; 
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        body.dark-mode #profileModalContent {
+            background: var(--dark-surface);
+        }
+        body.dark-mode #profileModalContent h3,
+        body.dark-mode #profileModalContent label {
+            color: var(--dark-text);
+        }
+        body.dark-mode #profileModalContent input,
+        body.dark-mode #profileModalContent select,
+        body.dark-mode #profileModalContent textarea { 
+            background: var(--dark-input-bg);
+            border-color: var(--dark-input-border);
+            color: var(--dark-text);
+        }
+        body.dark-mode #profileModalContent input[type="text"]:read-only {
+            background-color: #222;
+        }
+        
+        /* New button grouping style */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        /* ⭐ NEW: FLOATING HELP BUTTON STYLES ⭐ */
+        #floatingHelpButton {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #007bff; /* Blue for contrast and clear purpose */
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            z-index: 1000; 
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        #floatingHelpButton:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        body.dark-mode #floatingHelpButton {
+             background-color: var(--primary-color);
+        }
+        body.dark-mode #floatingHelpButton:hover {
+             background-color: var(--secondary-color);
+        }
+        /* ⭐ END NEW: FLOATING HELP BUTTON STYLES ⭐ */
+        
+        /* Style for the DEDICATED HELP MODAL content */
+        #helpModalContentInner {
+            max-width: 500px;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        
+        /* Ensures labels and inputs are left-aligned within the centered modal */
+        #helpModalContentInner label,
+        #helpModalContentInner textarea {
+             text-align: left;
+             width: 100%; /* Ensures alignment */
+        }
+        #helpModalContentInner h3 {
+             color: #007bff;
+             margin-bottom: 20px;
+             font-weight: 700;
+        }
+        
+        /* FIX: Textarea alignment */
+        #helpModalContentInner .problem-area {
+             text-align: left;
+             width: 100%;
+        }
+        
+        body.dark-mode #helpModalContentInner {
+             background: var(--dark-surface);
+        }
+        body.dark-mode #helpModalContentInner h3 {
+             color: var(--primary-color);
+        }
+        
+        /* ⭐ Notification Bell and Flyout Styles ⭐ */
+        
+        #notificationToggleContainer {
+            position: relative;
+            order: 1.5; /* Positioned between Profile and Dark Mode/Logout */
+            margin-right: 20px;
+            /* FIX: Hide the container entirely when there are no notifications */
+            display: none; 
+        }
+
+        #notificationBell {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            position: relative;
+            transition: color 0.3s;
+        }
+        
+        /* Notification Counter Style (The Red Dot) */
+        #notificationCount {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #dc3545; /* Red */
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            line-height: 1;
+            font-weight: 700;
+            border: 2px solid var(--bg-card); /* Border matches navbar background */
+        }
+        body.dark-mode #notificationCount {
+             border: 2px solid var(--dark-surface);
+        }
+        
+        /* Notification Flyout Panel */
+        #notificationFlyout {
+            display: none;
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 300px;
+            max-height: 350px;
+            overflow-y: auto;
+            background: var(--bg-card);
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1050;
+            padding: 15px;
+            text-align: left;
+        }
+        body.dark-mode #notificationFlyout {
+            background: var(--dark-surface);
+            border: 1px solid #555;
+        }
+        
+        #notificationFlyout h4 {
+            margin: 0 0 10px;
+            color: var(--primary-color);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .notification-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            line-height: 1.4;
+            background: #f1f1f1;
+            border-left: 5px solid;
+        }
+        body.dark-mode .notification-item {
+            background: #222;
+        }
+        
+        .notification-item.Accepted {
+            border-color: #28a745; /* Green */
+        }
+        .notification-item.Denied {
+            border-color: #dc3545; /* Red */
+        }
+        
+        .notification-dismiss {
+            font-size: 0.75em;
+            color: #6c757d;
+            cursor: pointer;
+            display: block;
+            margin-top: 5px;
+        }
+        .notification-dismiss:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <h1 class="nav-brand">EVENT HUB</h1>
+        <nav>
+            <a href="#" id="allEventsLink" class="nav-link active">All Events</a>
+            <a href="#" id="myEventsLink" class="nav-link">My Registrations</a>
+            <a href="#" class="nav-link admin-link">Add Event (Admin)</a>
+        </nav>
+        
+        <div id="notificationToggleContainer">
+            <button id="notificationBell" onclick="openNotificationPanel()">
+                🔔 <span id="notificationCount" style="display:none;"></span>
+            </button>
+            <div id="notificationFlyout">
+                <h4>Admin Notifications</h4>
+                <div id="notificationList">No new messages.</div>
+                <button onclick="closeNotificationPanel()" style="width: 100%; margin-top: 10px; background-color: #6c757d;">Close</button>
+            </div>
+        </div>
+        <div class="profile-container" onclick="openProfileModal()">
+            <img id="profilePic" class="profile-pic" alt="Profile Picture">
+            <span id="userNameDisplay" class="username-display"></span> 
+        </div>
+        
+        <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">☀️ Dark Mode</button>
+        
+        <button class="logout-btn" onclick="logoutUser()">Logout</button>
+    </header>
+
+    <div class="main-container">
+
+        <aside class="sidebar">
+            <h3 class="sidebar-title">My Event Countdown</h3>
+            <div id="timerContainer">
+            </div>
+        </aside>
+
+        <main class="content">
+            <h2 class="content-title" id="contentTitle">Upcoming College Events</h2>
+            <div id="eventList">
+            </div>
+        </main>
+    </div>
+    
+    <button id="floatingHelpButton" onclick="openHelpModal()">
+        Need Help?
+    </button>
+    
+    <div id="imageModal" class="modal">
+      <span class="close-btn" onclick="closeModal('imageModal')">&times;</span>
+      <div class="modal-content">
+        <img id="modalImage">
+      </div>
+    </div>
+    
+    <div id="profileModal" class="modal">
+        <div id="profileModalContent">
+            
+            <h3>User Profile Management</h3>
+            
+            <img id="currentPicPreview" src="" alt="Current Profile Picture">
+            
+            <div class="button-group">
+                <button onclick="triggerFileInput()" style="background-color: #3f51b5;">Upload New Picture</button>
+                <button onclick="removeProfilePic()" style="background-color: #dc3545;">Remove Picture</button>
+            </div>
+            
+            <p id="profileMessage" style="margin: 10px 0;"></p>
+            
+            <label for="profileUsername">Username (Read Only)</label>
+            <input type="text" id="profileUsername" readonly>
+
+            <label for="profileSemester">Semester</label>
+            <select id="profileSemester">
+                <option value="S1">Semester 1 (S1)</option>
+                <option value="S2">Semester 2 (S2)</option>
+                <option value="S3">Semester 3 (S3)</option>
+                <option value="S4">Semester 4 (S4)</option>
+                <option value="S5">Semester 5 (S5)</option>
+                <option value="S6">Semester 6 (S6)</option>
+                <option value="S7">Semester 7 (S7)</option>
+                <option value="S8">Semester 8 (S8)</option>
+                <option value="N/A">Not Set</option>
+            </select>
+            
+            <p id="pendingStatus" style="margin-top: 10px; font-weight: bold; color: #FF4B2B;"></p>
+
+            <div class="button-group">
+                <button onclick="saveProfileChanges()" id="saveChangesButton" style="background-color: var(--primary-color);">Request Change</button>
+                <button onclick="closeProfileModal()" style="background-color: #6c757d;">Close Profile</button>
+            </div>
+            
+            <input type="file" id="profileFileInput" accept="image/*" style="display: none;">
+
+        </div>
+    </div>
+    
+    <div id="helpModal" class="modal">
+        <div id="helpModalContentInner" class="modal-content">
+             <h3 style="margin-top: 0;">Need Help? Contact Admin.</h3>
+             <p style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 15px;">
+                 Describe any technical issue or ask for clarification regarding an event or your account.
+             </p>
+             
+             <div class="problem-area">
+                 <label for="helpDescription" style="margin-bottom: 5px;">Problem Description</label>
+                 <textarea id="helpDescription" rows="5" placeholder="I'm unable to register for Event X..."></textarea>
+             </div>
+             
+             <p id="helpMessage" style="margin-top: 10px;"></p>
+             
+             <div class="button-group" style="margin-top: 25px;">
+                  <button onclick="sendHelpRequest()" 
+                      style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 700; transition: background-color 0.2s;"
+                      onmouseover="this.style.backgroundColor='#0056b3'"
+                      onmouseout="this.style.backgroundColor='#007bff'">
+                      Send Request
+                  </button>
+                  
+                  <button onclick="closeModal('helpModal')" 
+                      style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: 700; transition: background-color 0.2s;"
+                      onmouseover="this.style.backgroundColor='#5a6268'"
+                      onmouseout="this.style.backgroundColor='#6c757d'">
+                      Cancel
+                  </button>
+             </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- 1. API & Data Setup ---
+        const API_URL_EVENTS = 'http://localhost:8080/api/events';
+        const API_URL_REGISTRATIONS = 'http://localhost:8080/api/registrations';
+        const API_URL_USER_DATA = 'http://localhost:8080/api/users'; 
+        const ADMIN_USERNAME = 'admin'; // Hardcoded admin username for internal logic
+
+        let allEventsCache = []; 
+        let currentUserDataCache = null; 
+
+        // --- Data Fetching and Persistence ---
+        async function fetchEventsData() {
+            try {
+                const response = await fetch(API_URL_EVENTS);
+                if (!response.ok) {
+                    throw new Error("Server error, status: " + response.status);
+                }
+                const events = await response.json();
+                return events;
+            } catch (error) {
+                console.error("Could not fetch events from server:", error);
+                return []; 
+            }
+        }
+        
+        async function fetchCurrentUserData() {
+            const username = localStorage.getItem('currentUser');
+            if (!username) return null;
+
+            // --- Fallback: Re-read User Data from Local Storage (Semester/Profile Pic/Pending) ---
+            const userDataJSON = localStorage.getItem('user_' + username);
+            // NOTE: Initializing default tracking fields (joinedDate, lastLogin, lastLogout) for backward compatibility
+            const localData = userDataJSON ? JSON.parse(userDataJSON) : { 
+                registeredEvents: [], 
+                semester: username === 'admin' ? 'Management' : 'N/A', 
+                profilePicUrl: '',
+                joinedDate: new Date().toISOString(), // Default for old users
+                lastLogin: new Date().toISOString(),
+                lastLogout: 'N/A'
+            };
+            
+            // Ensure registeredEvents is at least an empty array if not present in local data
+            if (!localData.registeredEvents) {
+                 localData.registeredEvents = [];
+            }
+            
+            // --- Fetch Registered Events from Backend/API Placeholder (using local storage as fallback for IDs) ---
+            if (username !== 'admin') {
+                try {
+                    const response = await fetch(`${API_URL_USER_DATA}/${username}/registrations`);
+                    if (response.ok) {
+                         const registeredIds = await response.json();
+                         localData.registeredEvents = registeredIds.map(id => Number(id));
+                    } else {
+                         // Fallback to local storage registrations if API fails
+                         const registrationsFromLocal = (localStorage.getItem('user_' + username) ? JSON.parse(localStorage.getItem('user_' + username)).registeredEvents : []);
+                         localData.registeredEvents = registrationsFromLocal.map(id => Number(id));
+                         console.warn("Using local storage for registered events. Backend connectivity issue or endpoint missing.");
+                    }
+                } catch (e) {
+                     localData.registeredEvents = localData.registeredEvents.map(id => Number(id));
+                }
+            } else {
+                 localData.registeredEvents = []; 
+            }
+
+            currentUserDataCache = localData;
+            return localData;
+        }
+        
+        async function initialLoad() {
+             allEventsCache = await fetchEventsData();
+             await fetchCurrentUserData();
+             renderEvents(false);
+             updateTimer();
+             displayUserProfile();
+             updateNotificationBell(); // Initial check for unread messages
+        }
+        
+        function getUserData() {
+             return currentUserDataCache || {};
+        }
+
+        // NOTE: This relies on local storage for participant count for display purposes only.
+        function getParticipantCount(eventId) {
+            let count = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('user_')) {
+                    const userDataJSON = localStorage.getItem(key);
+                    const userData = JSON.parse(userDataJSON);
+                    if (userData.registeredEvents && userData.registeredEvents.includes(eventId)) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        initialLoad();
+
+
+        // --- DARK MODE LOGIC ---
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        function applyDarkMode(isDark) {
+            document.body.classList.toggle('dark-mode', isDark);
+            darkModeToggle.innerHTML = isDark ? '🌙 Light Mode' : '☀️ Dark Mode';
+        }
+
+        window.toggleDarkMode = function() {
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkModeEnabled', !isDark);
+            applyDarkMode(!isDark);
+        }
+
+        const storedTheme = localStorage.getItem('darkModeEnabled');
+        if (storedTheme === 'true') {
+            applyDarkMode(true);
+        }
+        // --- END DARK MODE LOGIC ---
+
+        // --- 2. Initial Setup and User Functions ---
+        const currentUser = localStorage.getItem('currentUser');
+        const adminLink = document.querySelector('.admin-link'); 
+        
+        function getNotificationData() {
+            const data = localStorage.getItem('notifiedEvents');
+            return data ? JSON.parse(data) : {};
+        }
+
+        function setNotificationData(data) {
+            localStorage.setItem('notifiedEvents', JSON.stringify(data));
+        }
+
+        if (!currentUser) {
+            window.location.href = 'index.html';
+        }
+        
+        function displayUserProfile() {
+            const userData = getUserData();
+            
+            const usernameDisplay = document.getElementById('userNameDisplay');
+            const profilePicElement = document.getElementById('profilePic');
+            
+            const profileName = userData.profileName || currentUser; 
+            const formattedName = profileName.charAt(0).toUpperCase() + profileName.slice(1);
+            
+            let displayRole;
+            
+            if (currentUser === 'admin') {
+                displayRole = 'Management';
+            } else {
+                displayRole = userData.semester || 'N/A';
+            }
+            
+            usernameDisplay.textContent = `${formattedName} (${displayRole})`;
+            
+            function createPlaceholder(initial) {
+                const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FF4B2B'/><text x='50' y='65' font-size='50' fill='%23FFFFFF' text-anchor='middle' font-family='Montserrat, sans-serif'>${initial}</text></svg>`;
+                return `data:image/svg+xml;base64,${btoa(svg)}`;
+            }
+
+            if (userData.profilePicUrl && (userData.profilePicUrl.startsWith('http') || userData.profilePicUrl.startsWith('data:image/'))) {
+                profilePicElement.src = userData.profilePicUrl;
+            } else {
+                const initial = currentUser.charAt(0).toUpperCase();
+                profilePicElement.src = createPlaceholder(initial);
+            }
+        }
+        
+        if (currentUser !== 'admin') {
+            adminLink.style.display = 'none'; 
+        } else {
+            adminLink.href = 'admin.html';
+        }
+
+        function saveUserData(userData) {
+            localStorage.setItem('user_' + currentUser, JSON.stringify(userData));
+        }
+
+        window.logoutUser = function() {
+            const username = localStorage.getItem('currentUser');
+            const userKey = 'user_' + username;
+
+            const userDataJSON = localStorage.getItem(userKey);
+            if (userDataJSON) {
+                const userData = JSON.parse(userDataJSON);
+                
+                // Record logout time before clearing the session
+                userData.lastLogout = new Date().toISOString(); 
+                localStorage.setItem(userKey, JSON.stringify(userData));
+            }
+            
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+
+        // --- NEW HELP REQUEST LOGIC ---
+        
+        window.sendHelpRequest = function() {
+            const problemDescription = document.getElementById('helpDescription').value.trim();
+            const helpMessageElement = document.getElementById('helpMessage');
+            
+            helpMessageElement.style.color = '#333'; // Reset color
+            helpMessageElement.textContent = '';
+            
+            if (currentUser === ADMIN_USERNAME) {
+                helpMessageElement.style.color = '#dc3545';
+                helpMessageElement.textContent = 'Admin cannot submit help requests via this form.';
+                return;
+            }
+            
+            if (problemDescription.length < 10) {
+                helpMessageElement.style.color = '#dc3545';
+                helpMessageElement.textContent = 'Please provide a detailed description (min 10 characters).';
+                return;
+            }
+
+            // --- SIMULATE SENDING REQUEST TO ADMIN ---
+            
+            const adminUserKey = 'user_' + ADMIN_USERNAME;
+            const adminDataJSON = localStorage.getItem(adminUserKey);
+            
+            // NOTE: Using a 'helpRequests' array in the admin's local storage data structure
+            if (adminDataJSON) {
+                const adminData = JSON.parse(adminDataJSON);
+                
+                if (!adminData.helpRequests) {
+                    adminData.helpRequests = [];
+                }
+                
+                const request = {
+                    user: currentUser,
+                    semester: getUserData().semester || 'N/A',
+                    time: new Date().toLocaleTimeString(),
+                    description: problemDescription
+                };
+                
+                adminData.helpRequests.push(request);
+                localStorage.setItem(adminUserKey, JSON.stringify(adminData));
+                
+                helpMessageElement.style.color = '#28a745';
+                helpMessageElement.textContent = 'Request sent! The Admin has been notified.';
+                
+                // Optional: Clear the textarea
+                document.getElementById('helpDescription').value = '';
+                
+                // Close the help modal on successful submission
+                // Using a delay to let the success message display briefly
+                setTimeout(() => {
+                    closeModal('helpModal'); 
+                    helpMessageElement.textContent = ''; // Clear message for next time
+                }, 1500); 
+
+            } else {
+                helpMessageElement.style.color = '#dc3545';
+                helpMessageElement.textContent = 'Error: Admin account data not found in local storage.';
+            }
+        }
+        
+        // --- END NEW HELP REQUEST LOGIC ---
+
+        // NEW: Function to render admin notifications
+        function renderAdminNotifications(userData) {
+            const profileModal = document.getElementById('profileModalContent');
+            let notificationContainer = document.getElementById('notificationDisplay');
+
+            if (!notificationContainer) {
+                 // Create notification container dynamically if it doesn't exist
+                 notificationContainer = document.createElement('div');
+                 notificationContainer.id = 'notificationDisplay';
+                 // Insert it right after the main header
+                 profileModal.insertBefore(notificationContainer, profileModal.firstChild.nextSibling); 
+            }
+
+            const notifications = userData.adminNotifications || [];
+            
+            if (notifications.length === 0) {
+                notificationContainer.style.display = 'none';
+                return;
+            }
+
+            // Set the styles for the dynamically created container
+            notificationContainer.style.cssText = `
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                width: 80%; 
+                max-width: 250px;
+                max-height: 120px;
+                padding: 10px;
+                border-radius: 8px;
+                overflow-y: auto;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                text-align: left;
+                z-index: 1100;
+                
+                /* Use CSS Variables for theme consistency */
+                background-color: var(--bg-card);
+                border: 1px solid var(--primary-color);
+                color: var(--text-primary);
+            `;
+            
+            let notificationHTML = '';
+
+            // Reverse to show latest first
+            notifications.slice().reverse().forEach( (n, index) => { 
+                // Index is relative to the reversed list, need to calculate original index for splicing
+                const originalIndex = notifications.length - 1 - index;
+                
+                // Use color based on status
+                const color = n.type === 'Accepted' ? '#28a745' : '#dc3545';
+                
+                notificationHTML += `
+                    <p style="font-size: 0.75em; margin-bottom: 5px; line-height: 1.2;">
+                        <strong style="color: ${color};">[${n.time}] ${n.message}</strong> 
+                        <span style="cursor: pointer; color: #6c757d; font-weight: 400; margin-left: 10px;" 
+                              onclick="dismissNotification(${originalIndex})">
+                            (Dismiss)
+                        </span>
+                    </p>
+                `;
+            });
+            notificationContainer.innerHTML = notificationHTML;
+        }
+        
+        // NEW: Function to dismiss a single notification
+        window.dismissNotification = function(index) {
+             const userData = JSON.parse(localStorage.getItem('user_' + currentUser));
+             if (userData && userData.adminNotifications && index >= 0 && index < userData.adminNotifications.length) {
+                 userData.adminNotifications.splice(index, 1);
+                 localStorage.setItem('user_' + currentUser, JSON.stringify(userData));
+                 // Update in-memory cache and re-render
+                 currentUserDataCache.adminNotifications = userData.adminNotifications; 
+                 updateNotificationBell();
+                 // Re-render the flyout panel content if it's open
+                 const flyout = document.getElementById('notificationFlyout');
+                 if (flyout.style.display === 'block') {
+                    openNotificationPanel(); 
+                 }
+             }
+        }
+        
+        // NEW: Function to update the bell count and color
+        window.updateNotificationBell = function() {
+            const userData = getUserData();
+            const container = document.getElementById('notificationToggleContainer');
+            const countElement = document.getElementById('notificationCount');
+            const bell = document.getElementById('notificationBell');
+            const count = (userData.adminNotifications || []).length;
+            
+            if (count > 0) {
+                container.style.display = 'block';
+                countElement.style.display = 'block';
+                countElement.textContent = count;
+                bell.style.color = '#dc3545'; // Make the bell red when active
+            } else {
+                container.style.display = 'none'; // Hide the entire container
+            }
+        }
+        
+        // NEW: Function to toggle the flyout panel visibility
+        window.openNotificationPanel = function() {
+            const flyout = document.getElementById('notificationFlyout');
+            
+            // Toggle visibility
+            if (flyout.style.display === 'block') {
+                flyout.style.display = 'none';
+                return;
+            }
+
+            // Render content when showing (the content rendering is now consolidated in openNotificationPanel)
+            const userData = getUserData();
+            const notifications = userData.adminNotifications || [];
+            const listContainer = document.getElementById('notificationList');
+            
+            if (notifications.length === 0) {
+                 listContainer.innerHTML = '<p style="margin: 0; color: var(--text-secondary);">No new messages.</p>';
+            } else {
+                let listHTML = '';
+                notifications.slice().reverse().forEach((n, index) => {
+                    const originalIndex = notifications.length - 1 - index;
+                    const color = n.type === 'Accepted' ? '#28a745' : '#dc3545';
+                    
+                    listHTML += `
+                        <div class="notification-item ${n.type}">
+                            <strong style="color: ${color};">
+                                [${n.time}] Admin ${n.type.toUpperCase()}
+                            </strong>
+                            <p style="margin-top: 3px; color: var(--text-primary);">${n.message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</p>
+                            <span class="notification-dismiss" onclick="dismissNotification(${originalIndex})">
+                                Dismiss
+                            </span>
+                        </div>
+                    `;
+                });
+                listContainer.innerHTML = listHTML;
+            }
+            
+            flyout.style.display = 'block';
+        }
+
+        window.closeNotificationPanel = function() {
+            document.getElementById('notificationFlyout').style.display = 'none';
+        }
+        
+        // --- MODAL LOGIC & PROFILE EDITING (UPDATED) ---
+        
+        window.openProfileModal = function() {
+            if (currentUser === 'admin') {
+                return;
+            }
+            const userData = getUserData();
+            
+            document.getElementById('profileUsername').value = currentUser;
+            
+            const pendingStatusElement = document.getElementById('pendingStatus');
+            const semesterSelect = document.getElementById('profileSemester');
+            const saveButton = document.getElementById('saveChangesButton');
+            
+            // Check for pending changes
+            if (userData.pendingSemester) {
+                semesterSelect.value = userData.pendingSemester;
+                pendingStatusElement.textContent = `Pending Admin Approval: ${userData.pendingSemester}`;
+                saveButton.textContent = 'Re-Request Change';
+                saveButton.style.backgroundColor = '#ffc107'; // Yellow for re-request
+            } else {
+                semesterSelect.value = userData.semester || 'N/A';
+                pendingStatusElement.textContent = '';
+                saveButton.textContent = 'Request Change';
+                saveButton.style.backgroundColor = 'var(--primary-color)';
+            }
+
+
+            const previewElement = document.getElementById('currentPicPreview');
+            const messageElement = document.getElementById('profileMessage');
+            
+            if (userData.profilePicUrl && (userData.profilePicUrl.startsWith('http') || userData.profilePicUrl.startsWith('data:image/'))) {
+                 previewElement.src = userData.profilePicUrl;
+                 messageElement.textContent = 'Change or remove your current picture.';
+            } else {
+                 const initial = currentUser.charAt(0).toUpperCase();
+                 const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23FF4B2B'/><text x='50' y='65' font-size='50' fill='%23FFFFFF' text-anchor='middle' font-family='Montserrat, sans-serif'>${initial}</text></svg>`;
+                 previewElement.src = `data:image/svg+xml;base64,${btoa(svg)}`;
+                 messageElement.textContent = 'You are currently using the default icon.';
+            }
+            
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+        
+        window.openHelpModal = function() {
+             // Reset help form on open
+             document.getElementById('helpDescription').value = '';
+             document.getElementById('helpMessage').textContent = '';
+             document.getElementById('helpModal').style.display = 'flex';
+        }
+        
+        window.saveProfileChanges = function() {
+            const newSemester = document.getElementById('profileSemester').value;
+            const userData = getUserData();
+            
+            if (newSemester === userData.semester) {
+                 alert('Semester is already set to this value. Request cleared.');
+                 userData.pendingSemester = null; // Clear any old pending request if user selects current semester
+                 saveUserData(userData);
+                 closeModal('profileModal');
+                 return;
+            }
+            
+            // 1. Store the change in a pending field (Simulating Admin review)
+            userData.pendingSemester = newSemester;
+            
+            // 2. Save back to Local Storage
+            saveUserData(userData);
+            
+            // 3. Update the display and close
+            displayUserProfile();
+            closeModal('profileModal');
+            alert(`Semester change to ${newSemester} submitted. Awaiting Admin verification.`);
+        }
+
+        window.closeProfileModal = function() {
+            closeModal('profileModal');
+        }
+        
+        window.triggerFileInput = function() {
+            document.getElementById('profileFileInput').click();
+        }
+
+        document.getElementById('profileFileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const messageElement = document.getElementById('profileMessage');
+            
+            if (file) {
+                if (file.size > 1024 * 1024 * 2) { 
+                    messageElement.textContent = 'Error: Image size exceeds 2MB.';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    const userData = getUserData();
+                    userData.profilePicUrl = base64Image;
+                    saveUserData(userData);
+                    
+                    displayUserProfile();
+                    closeModal('profileModal');
+                    alert('Profile picture uploaded successfully!');
+                };
+                reader.onerror = function() {
+                    messageElement.textContent = 'Error reading file.';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                messageElement.textContent = 'No file selected.';
+            }
+        });
+        
+        window.removeProfilePic = function() {
+            if (!confirm('Are you sure you want to remove your profile picture and revert to the default icon?')) {
+                return;
+            }
+            const userData = getUserData();
+            userData.profilePicUrl = '';
+            saveUserData(userData);
+            
+            displayUserProfile();
+            closeModal('profileModal');
+        }
+
+        window.showEventImage = function(eventId) {
+            const event = allEventsCache.find(e => e.id === Number(eventId));
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            
+            if (event && event.imageUrl) {
+                let relativePath = event.imageUrl.startsWith('/') ? event.imageUrl.substring(1) : event.imageUrl;
+                const pathSegments = relativePath.split('/');
+                const filename = pathSegments.pop();
+                const basePath = pathSegments.join('/');
+                const finalEncodedUrl = `http://localhost:8080/${basePath}/${encodeURIComponent(filename)}`;
+                
+                modalImage.src = finalEncodedUrl;
+                modalImage.alt = event.name + " Image";
+                modal.style.display = 'flex'; 
+            } else {
+                alert(`No image details available for ${event ? event.name : 'this event'}.`);
+            }
+        }
+
+        window.closeModal = function(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        window.onclick = function(event) {
+            // Close image and profile modals as before
+            if (event.target == document.getElementById('imageModal')) {
+                closeModal('imageModal');
+            }
+            if (event.target == document.getElementById('profileModal')) {
+                closeModal('profileModal');
+            }
+            
+            // Handle Help Modal close specifically
+            if (event.target == document.getElementById('helpModal')) {
+                closeModal('helpModal');
+            }
+            
+            // Close notification flyout if click is outside the bell button/container
+            const notificationFlyout = document.getElementById('notificationFlyout');
+            const notificationToggleContainer = document.getElementById('notificationToggleContainer');
+            
+            if (notificationFlyout && notificationFlyout.style.display === 'block' && 
+                event.target !== notificationFlyout && 
+                !notificationFlyout.contains(event.target) &&
+                event.target !== notificationToggleContainer &&
+                !notificationToggleContainer.contains(event.target)) {
+                
+                closeNotificationPanel();
+            }
+        }
+        // --- END MODAL LOGIC ---
+
+        // DEFINITIVE TIME ZONE FIX UTILITY: Creates a Date object based purely on components.
+        function createLocalTargetDate(isoString) {
+            if (!isoString) return new Date(0); // Return epoch time if string is empty
+            
+            const datePart = isoString.substring(0, 10);
+            const timePart = isoString.substring(11, 19);
+
+            const [year, month, day] = datePart.split('-').map(Number);
+            const [hour, minute, second] = timePart.split(':').map(Number);
+            
+            // Constructor (year, monthIndex, day, hours, minutes, seconds)
+            return new Date(year, month - 1, day, hour, minute, second);
+        }
+
+        // --- 3. Timer Logic ---
+        async function updateTimer() {
+            const events = await fetchEventsData(); 
+            allEventsCache = events; 
+            const userData = getUserData();
+            const registeredEvents = userData.registeredEvents || []; 
+            const timerContainer = document.getElementById('timerContainer');
+            let timersHTML = '';
+            
+            const notifiedEvents = getNotificationData(); 
+            const START_THRESHOLD_MS = -5000; 
+
+            if (registeredEvents.length === 0) {
+                timerContainer.innerHTML = '<p class="sidebar-footer">You are not registered for any events yet.</p>';
+                return;
+            }
+
+            registeredEvents.forEach(eventId => {
+                const event = events.find(e => e.id === eventId); 
+                if (!event) return;
+
+                const targetDate = createLocalTargetDate(event.date).getTime();
+                
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                let timerText;
+                
+                if (distance <= 0 && distance > START_THRESHOLD_MS) {
+                    if (!notifiedEvents[eventId]) {
+                        alert(`🎉 EVENT STARTED: The event "${event.name}" is LIVE now!`);
+                        notifiedEvents[eventId] = true; 
+                        setNotificationData(notifiedEvents);
+                    }
+                    timerText = "EVENT LIVE!";
+                } else if (distance < START_THRESHOLD_MS) {
+                    timerText = "EVENT LIVE!";
+                    if (notifiedEvents[eventId]) {
+                        delete notifiedEvents[eventId];
+                        setNotificationData(notifiedEvents);
+                    }
+                } else {
+                    timerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                }
+                
+                timersHTML += `
+                    <div class="event-timer-card">
+                        <h4>${event.name}</h4>
+                        <p>Starts in:</p>
+                        <div class="timer">${timerText}</div>
+                        <button class="small-btn" onclick="showEventImage(${event.id})">View Details</button>
+                    </div>
+                `;
+            });
+            timerContainer.innerHTML = timersHTML;
+        }
+        
+        // Timer runs every 1 second
+        setInterval(updateTimer, 1000);
+
+
+        // --- 4. Event Card Rendering, Registration, and CANCELLATION ---
+        
+        // NOTE: This relies on local storage for participant count for display purposes only.
+        function getParticipantCount(eventId) {
+            let count = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('user_')) {
+                    const userDataJSON = localStorage.getItem(key);
+                    const userData = JSON.parse(userDataJSON);
+                    if (userData.registeredEvents && userData.registeredEvents.includes(eventId)) {
+                        count++;
+                    }
+                }
+            }
+            return count;
+        }
+
+        window.registerForEvent = async function(eventId) { 
+            const eventIdNum = Number(eventId); 
+            const events = allEventsCache; 
+            const userData = getUserData();
+            
+            const event = events.find(e => e.id === eventIdNum);
+            
+            const currentCount = getParticipantCount(eventIdNum);
+            const maxCapacity = event.maxCapacity ? Number(event.maxCapacity) : Infinity;
+
+            if (event.requiresRegistration === false) {
+                 alert(`Registration is not required for "${event.name}". You can simply attend!`);
+                 return;
+            }
+            
+            if (currentCount >= maxCapacity) {
+                 alert(`🔴 REGISTRATION FULL 🔴\n"${event.name}" has reached its maximum capacity of ${maxCapacity} participants.`);
+                 return;
+            }
+
+            const isEligible = isUserEligible(event, userData);
+
+            if (!isEligible) {
+                const eligibleSems = event.semester ? event.semester.split(',').map(s => s.trim()).filter(s => s !== "").join(', ') : 'NONE';
+
+                alert(`⚠️ YOU ARE NOT ELIGIBLE ⚠️
+Event: ${event.name}
+Registration Denied: You are Semester ${userData.semester}.
+This event is restricted to Semesters: ${eligibleSems}.`);
+                
+                return; 
+            }
+            
+            // Defensive check for registration array before checking includes
+            if (!(userData.registeredEvents || []).includes(eventIdNum)) {
+                // Manually update local storage (Simulating backend registration)
+                let localUserData = JSON.parse(localStorage.getItem('user_' + currentUser));
+                // Defensive check before push
+                if (!localUserData.registeredEvents) localUserData.registeredEvents = [];
+                
+                localUserData.registeredEvents.push(eventIdNum);
+                localStorage.setItem('user_' + currentUser, JSON.stringify(localUserData));
+                
+                // Update in-memory cache to reflect registration immediately
+                if (!userData.registeredEvents) userData.registeredEvents = [];
+                userData.registeredEvents.push(eventIdNum);
+
+                alert(`✅ Successfully registered for ${event.name}!`);
+                
+                renderEvents(document.getElementById('myEventsLink').classList.contains('active')); 
+            }
+        }
+
+        window.cancelRegistration = async function(eventId) {
+            const eventIdNum = Number(eventId); 
+            const events = allEventsCache;
+            const userData = getUserData();
+            
+            // Defensive check for registration array
+            if ((userData.registeredEvents || []).includes(eventIdNum)) {
+                // Manually update local storage (Simulating backend deregistration)
+                let localUserData = JSON.parse(localStorage.getItem('user_' + currentUser));
+                localUserData.registeredEvents = (localUserData.registeredEvents || []).filter(id => id !== eventIdNum);
+                localStorage.setItem('user_' + currentUser, JSON.stringify(localUserData));
+                
+                // Update in-memory cache
+                userData.registeredEvents = (userData.registeredEvents || []).filter(id => id !== eventIdNum);
+
+                alert(`Registration for ${events.find(e => e.id === eventIdNum).name} has been cancelled.`);
+                renderEvents(document.getElementById('myEventsLink').classList.contains('active'));
+            }
+        }
+
+        // Check if user is eligible based on semester (Most robust version)
+        function isUserEligible(event, userData) {
+            if (currentUser === 'admin') return true; 
+            
+            if (event.requiresRegistration === false) {
+                return true; 
+            }
+            
+            if (!event.semester || typeof event.semester !== 'string' || event.semester.trim() === "") {
+                return true; 
+            } 
+
+            const eligibleSemesters = event.semester.split(',').map(s => s.trim());
+            const cleanEligibleSemesters = eligibleSemesters.filter(s => s !== "");
+
+            if (cleanEligibleSemesters.length === 0) {
+                 return true;
+            }
+
+            return cleanEligibleSemesters.includes(userData.semester);
+        }
+
+        // Standardized Date and Time Formatting (Uses local time fix AND inverse AM/PM logic)
+        function formatDateTime(isoString) {
+            const date = createLocalTargetDate(isoString);
+            
+            const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+            const datePart = date.toLocaleDateString(undefined, dateOptions);
+            
+            // --- INVERSE TIME LOGIC FOR DISPLAY ---
+            let hours = date.getHours();
+            let minutes = date.getMinutes();
+            let ampm = hours >= 12 ? 'pm' : 'am';
+            
+            // Apply INVERSE AM/PM (This reverses the admin's inverse entry logic)
+            ampm = ampm === 'am' ? 'pm' : 'am';
+            
+            // Convert to 12-hour format
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            
+            const timePart = `${hours}:${minutes} ${ampm}`;
+            // --- END INVERSE TIME LOGIC ---
+
+            return `${datePart} at ${timePart}`;
+        }
+        
+        function createEventCard(event, userData) {
+            // Defensive check for userData.registeredEvents
+            const isRegistered = (userData.registeredEvents || []).includes(event.id); 
+            
+            const isClosed = new Date(event.date).getTime() < new Date().getTime() || event.status === 'closed';
+            const isEligible = isUserEligible(event, userData); 
+            
+            // NEW: Capacity and Count Logic
+            const currentCount = getParticipantCount(event.id);
+            const maxCapacity = event.maxCapacity ? Number(event.maxCapacity) : null;
+            const isFull = maxCapacity && currentCount >= maxCapacity;
+            
+            let capacityDisplay = '';
+            if (maxCapacity) {
+                capacityDisplay = `| ${currentCount}/${maxCapacity} spots`;
+            } else {
+                 capacityDisplay = `| ${currentCount} registered`;
+            }
+
+
+            let buttonHTML;
+            let statusClass;
+            let statusText; 
+            
+            // FINAL IMAGE FIX: Construct Absolute and Encoded URL 
+            const baseHost = 'http://localhost:8080';
+            let imageHTML = '';
+
+            if (event.imageUrl) {
+                let relativePath = event.imageUrl.startsWith('/') ? event.imageUrl.substring(1) : event.imageUrl;
+                const pathSegments = relativePath.split('/');
+                const filename = pathSegments.pop();
+                const basePath = pathSegments.join('/');
+                const finalEncodedUrl = `http://localhost:8080/${basePath}/${encodeURIComponent(filename)}`;
+                imageHTML = `<img src="${finalEncodedUrl}" alt="${event.name} Image" class="event-image">`;
+            } 
+            
+            const eventEligibleSemesters = event.semester ? event.semester.split(',').map(s => s.trim()).filter(s => s !== "") : [];
+            const ALL_SEMESTERS_COUNT = 8;
+            
+            let displaySemesters;
+
+            if (eventEligibleSemesters.length === 0 || eventEligibleSemesters.length === ALL_SEMESTERS_COUNT) {
+                displaySemesters = `All Semesters Eligible`;
+                if (currentUser !== 'admin') {
+                    displaySemesters += ` - User: ${userData.semester}`;
+                } else {
+                    displaySemesters += ` (Admin View)`;
+                }
+            } else {
+                displaySemesters = `Eligible: ${eventEligibleSemesters.join(', ')}`;
+            }
+
+            const semesterInfo = `(${displaySemesters})`;
+
+
+            // --- Start Button/Status Decision Block (Capacity Check Included) ---
+
+            if (event.requiresRegistration === false) {
+                buttonHTML = `<button class="register-btn" onclick="showEventImage(${event.id})">View Details</button>`; 
+                statusText = 'Open to All';
+                statusClass = 'open'; 
+            } 
+            else if (isRegistered) { 
+                if (!isClosed) {
+                    buttonHTML = `<button class="register-btn" onclick="cancelRegistration(${event.id})" style="background-color: #f44336; font-weight: bold;">Cancel Registration</button>`;
+                    statusText = 'Registered';
+                    statusClass = 'registered';
+                } else {
+                    buttonHTML = `<button class="register-btn disabled" disabled>View Details</button>`;
+                    statusText = 'Event Concluded';
+                    statusClass = 'closed';
+                }
+            } else if (isClosed) {
+                buttonHTML = `<button class="register-btn disabled" disabled>Registration Closed</button>`;
+                statusText = 'Registration Closed';
+                statusClass = 'closed';
+            } else if (!isEligible) {
+                buttonHTML = `<button class="register-btn disabled" onclick="registerForEvent(${event.id})" style="background-color: #6c757d;">Not Eligible</button>`;
+                statusText = 'Ineligible';
+                statusClass = 'closed'; 
+            } else if (isFull) {
+                 buttonHTML = `<button class="register-btn disabled" disabled style="background-color: #ffc107;">FULLY BOOKED</button>`;
+                 statusText = 'Capacity Reached';
+                 statusClass = 'closed';
+            }
+            else {
+                const buttonText = 'Register Now';
+                buttonHTML = `<button class="register-btn" onclick="registerForEvent(${event.id})">${buttonText}</button>`; 
+                statusText = 'Registration Open';
+                statusClass = 'open';
+            }
+
+            // --- End Button/Status Decision Block ---
+            
+            const formattedDateDisplay = formatDateTime(event.date); 
+            
+            const cardHTML = `
+                <div class="event-card ${event.featured ? 'featured' : ''}">
+                    ${imageHTML}
+                    <div class="event-details">
+                        <h3>${event.name}</h3>
+                        <p class="date-time">🗓️ ${formattedDateDisplay}</p>
+                        <p class="location">📍 ${event.location} ${capacityDisplay} ${semesterInfo}</p>
+                        <p class="description">${event.description || ''}</p>
+                    </div>
+                    <div class="event-action">
+                        <span class="status ${statusClass}">${statusText}</span>
+                        ${buttonHTML}
+                    </div>
+                </div>
+            `;
+            return cardHTML;
+        }
+
+        // MODIFIED: Filtering Logic 
+        async function renderEvents(filterByRegistration = false) {
+            const eventList = document.getElementById('eventList');
+            const contentTitle = document.getElementById('contentTitle');
+            const userData = getUserData();
+            
+            const events = await fetchEventsData();
+            allEventsCache = events;
+            
+            let eventsToDisplay = events;
+            const userSemester = userData.semester || 'N/A'; 
+
+            if (filterByRegistration) {
+                // Defensive check before filtering
+                eventsToDisplay = events.filter(event => (userData.registeredEvents || []).includes(event.id)); 
+                contentTitle.textContent = 'My Registered Events';
+            } else {
+                if (currentUser === 'admin') {
+                    eventsToDisplay = events;
+                } else {
+                    eventsToDisplay = events;
+                }
+                
+                if (currentUser === 'admin') {
+                    contentTitle.textContent = `Upcoming College Events (Admin View)`;
+                } else {
+                    contentTitle.textContent = `Upcoming College Events (Your Semester: ${userSemester})`;
+                }
+            }
+            
+            eventList.innerHTML = '';
+            
+            if (eventsToDisplay.length === 0) {
+                const message = filterByRegistration 
+                    ? 'You haven\'t registered for any events yet. Check out the "All Events" tab!' 
+                    : `No upcoming events currently scheduled.`;
+                
+                if (currentUser === 'admin') {
+                    eventList.innerHTML = `<p style="margin-top: 30px; font-size: 1.2em;">No events have been created yet.</p>`;
+                } else {
+                    eventList.innerHTML = `<p style="margin-top: 30px; font-size: 1.2em;">${message}</p>`;
+                }
+                
+                return;
+            }
+
+            eventsToDisplay.forEach(event => {
+                eventList.innerHTML += createEventCard(event, userData);
+            });
+        }
+
+        // --- 5. Navigation/Filtering Logic ---
+        document.getElementById('allEventsLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('.nav-link.active').classList.remove('active');
+            e.target.classList.add('active');
+            renderEvents(false);
+        });
+
+        document.getElementById('myEventsLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('.nav-link.active').classList.remove('active');
+            e.target.classList.add('active');
+            renderEvents(true);
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderEvents(false); 
+            updateTimer(); 
+            displayUserProfile(); 
+            updateNotificationBell(); // Initial check for unread messages
+        });
+    </script>
+</body>
+</html>

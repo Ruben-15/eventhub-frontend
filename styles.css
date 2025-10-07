@@ -1,0 +1,447 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+/* General Styling and Font Setup */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    /* Set background to solid dark color for particle contrast */
+    background: #1a1a1a; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: 'Montserrat', sans-serif;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden; 
+    position: relative; 
+    z-index: 1; 
+}
+
+/* ⭐ Particle Container Styling (Required for the dynamic background) ⭐ */
+#particles-js {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a1a;
+    background-image: url('');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 50% 50%;
+    z-index: 0;
+}
+
+/* ----------------------------------------------------------- */
+/* NEW: COLOR SHIFT ANIMATION KEYFRAMES (Guaranteed Multi-Color Glow) */
+/* ----------------------------------------------------------- */
+@keyframes reliable-color-shift {
+  0% { 
+    /* Starts with base color hue */
+    filter: hue-rotate(0deg) drop-shadow(0 0 8px rgba(255, 123, 74, 1)); 
+  }
+  100% { 
+    /* Rotates through all colors (hue) */
+    filter: hue-rotate(360deg) drop-shadow(0 0 8px rgba(255, 123, 74, 1)); 
+  }
+}
+
+/* NEW: Top-Left Logo Styling (STATIC and Clickable) */
+#loginPageLogo {
+    position: fixed; /* FIX: Locks position to the viewport */
+    top: 20px;
+    left: 20px; /* Positioned in the top-left corner */
+    width: 135px; /* Increased size for prominence */
+    height: auto;
+    z-index: 100; 
+    cursor: pointer; /* Indicate it's clickable */
+    
+    /* POLISH: Rounded Corners and Shadow */
+    border-radius: 10px; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); 
+    
+    /* Apply initial static glow */
+    filter: drop-shadow(0 0 5px rgba(255, 123, 74, 0.6));
+    
+    /* CRITICAL: Smooth transition for when the animation starts/stops */
+    transition: all 0.5s ease-in-out; 
+}
+
+/* CRITICAL FIX: Applies only the continuous color shift when clicked */
+.logo-clicked {
+    animation: reliable-color-shift 1.5s infinite linear; 
+}
+
+
+/* Attractive Branding Title Styling */
+.brand-title {
+    font-size: 38px;
+    font-weight: 900; 
+    margin-bottom: 5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    
+    /* Styling for the forms (light background) */
+    color: #FF4B2B; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); 
+}
+
+/* Override for the brand title inside the overlay (gradient side) */
+.overlay .brand-title {
+    color: #FFFFFF; 
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.4); 
+}
+
+
+/* Form Action Heading */
+h2 {
+    font-weight: 800;
+    font-size: 20px;
+    margin: 5px 0 15px;
+    color: #333; 
+}
+
+p {
+    font-size: 14px;
+    font-weight: 100;
+    line-height: 20px;
+    letter-spacing: 0.5px;
+    margin: 20px 0 30px;
+}
+
+span {
+    font-size: 12px;
+}
+
+a {
+    color: #333;
+    font-size: 14px;
+    text-decoration: none;
+    margin: 15px 0;
+    transition: color 0.3s ease; 
+}
+
+a:hover {
+    color: #FF4B2B;
+}
+
+/* Button Styling */
+button {
+    border-radius: 20px;
+    /* ⭐ ORIGINAL EVENT HUB ORANGE ⭐ */
+    border: 1px solid #FF4B2B;
+    background-color: #FF4B2B;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 45px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:active {
+    transform: scale(0.95); 
+}
+
+button:focus {
+    outline: none;
+}
+
+button.ghost {
+    background-color: transparent;
+    border-color: #FFFFFF;
+}
+
+/* Form Styling */
+form {
+    background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 50px;
+    height: 100%;
+    text-align: center;
+}
+
+input {
+    background-color: #eee;
+    border: none;
+    padding: 12px 15px;
+    margin: 8px 0;
+    width: 100%;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+input:focus {
+    background-color: #fff;
+    border: 1px solid #FF4B2B;
+    outline: none;
+}
+
+/* Container and Form Layout */
+.container {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4), 
+                0 10px 10px rgba(0, 0, 0, 0.3); 
+    position: relative;
+    overflow: hidden;
+    width: 768px; 
+    max-width: 100%;
+    min-height: 480px; 
+    z-index: 10; 
+}
+
+.form-container {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out; 
+}
+
+.sign-in-container {
+    left: 0;
+    width: 50%;
+    z-index: 2;
+}
+
+.sign-up-container {
+    left: 0;
+    width: 50%;
+    opacity: 0; 
+    z-index: 1;
+}
+
+/* ⭐ MODIFIED: Overlay Panel Styling (Solid Orange) ⭐ */
+.overlay-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
+}
+
+.overlay {
+    /* Set both gradient stops to the same color for a SOLID appearance */
+    background: #FF4B2B; 
+    background: -webkit-linear-gradient(to right, #FF4B2B, #FF4B2B);
+    background: linear-gradient(to right, #FF4B2B, #FF4B2B);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 0 0;
+    color: #FFFFFF;
+    position: relative;
+    left: -100%;
+    height: 100%;
+    width: 200%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+
+.overlay-panel {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 40px;
+    text-align: center;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    transform: translateX(0);
+    transition: transform 0.6s ease-in-out;
+}
+
+.overlay-left {
+    transform: translateX(-20%);
+}
+
+.overlay-right {
+    right: 0;
+    transform: translateX(0);
+}
+
+/* --- ANIMATION --- */
+
+.container.right-panel-active .overlay-container{
+    transform: translateX(-100%);
+}
+
+.container.right-panel-active .overlay {
+    transform: translateX(50%);
+}
+
+.container.right-panel-active .sign-in-container {
+    transform: translateX(100%);
+}
+
+.container.right-panel-active .sign-up-container {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+    animation: show 0.6s;
+}
+
+@keyframes show {
+    0%, 49% {
+        opacity: 0;
+        z-index: 1;
+    }
+    50%, 100% {
+        opacity: 1;
+        z-index: 5;
+    }
+}
+
+.container.right-panel-active .overlay-left {
+    transform: translateX(0);
+}
+
+.container.right-panel-active .overlay-right {
+    transform: translateX(20%);
+}
+
+/* START: NEW CHATBOT WIDGET STYLES (EMOJI ICON) */
+#chatBotWidget {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+}
+
+#chatBotIcon {
+    width: 60px; 
+    height: 60px; 
+    
+    background-color: #FF4B2B; /* Brand color */
+    border-radius: 50%; /* Circular shape */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Display the emoji content */
+    font-size: 30px; 
+    color: white; 
+    
+    background-image: none;
+    background-size: none; 
+    background-repeat: none;
+
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+#chatBotIcon:hover {
+    background-color: #FF754A;
+    transform: scale(1.05); /* Slight lift and scale on hover */
+}
+
+/* ⭐ FINAL ATTRACTIVE POPUP STYLING FIX ⭐ */
+#welcomePopup {
+    position: absolute;
+    /* Adjusted bottom position to align arrow with the top of the icon's head */
+    bottom: 80px; 
+    
+    /* Adjusted left position to make the bubble overlap the arrow slightly, creating a clean merge */
+    left: 80px; 
+    
+    max-width: 200px; 
+    
+    background-color: #FFFFFF; 
+    color: #1a1a1a; 
+    padding: 15px 20px; /* Increased padding */
+    
+    /* Smoother, professional rounded corners */
+    border-radius: 15px; 
+    border: 2px solid #FF4B2B; /* Brand color border */
+    
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 75, 43, 0.5); 
+    
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px; 
+    line-height: 1.4;
+    font-weight: 500;
+    
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translateY(10px) translateX(0);
+    pointer-events: none;
+    
+    clip-path: none; 
+}
+
+/* ⭐ FINAL ARROW POSITIONING (Inner Arrow: White) - POINTER TO LEFT SIDE OF BUBBLE ⭐ */
+#welcomePopup::before {
+    content: '';
+    position: absolute;
+    /* FIX: Vertical position to align to the bot's head area */
+    bottom: 12px; 
+    /* Horizontal position: connects arrow tip just outside the bubble */
+    left: -17px; 
+    width: 0;
+    height: 0;
+    
+    /* Creates a small white triangle */
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid #FFFFFF; 
+    border-left: 10px solid transparent;
+    
+    /* Points left, directly at the icon */
+    transform: rotate(0deg); 
+    z-index: 101;
+    opacity: 0; 
+    transition: opacity 0.5s;
+}
+
+/* ⭐ FINAL ARROW POSITIONING (Outer Border: Red) - POINTER TO LEFT SIDE OF BUBBLE ⭐ */
+#welcomePopup::after {
+    content: '';
+    position: absolute;
+    /* Aligned 1px up from the white arrow */
+    bottom: 11px; 
+    /* Aligned 3px left from the white arrow for border spacing */
+    left: -20px; 
+    width: 0;
+    height: 0;
+    
+    /* Creates a slightly larger red border triangle */
+    border-top: 12px solid transparent;
+    border-bottom: 12px solid transparent;
+    border-right: 12px solid #FF4B2B; 
+    border-left: 12px solid transparent;
+    
+    transform: rotate(0deg);
+    z-index: 99; 
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+/* Show both the popup and the pointer on load */
+#chatBotWidget.show #welcomePopup {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+}
+
+#chatBotWidget.show #welcomePopup::before,
+#chatBotWidget.show #welcomePopup::after {
+    opacity: 1;
+}
+
+/* Styles for the text inside the popup (using strong tags) */
+#welcomePopup strong {
+    color: #FF4B2B; /* Highlight the important words with the brand color */
+    font-weight: 800;
+}
+/* END: NEW CHATBOT WIDGET STYLES */

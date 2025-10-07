@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVENT HUB - Admin Panel</title>
+    <link rel="stylesheet" href="home_styles.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* General Interface Container */
+        #adminInterface {
+            max-width: 1200px; /* Use more horizontal space */
+            margin: 30px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+        }
+        
+        /* Tab Bar Styling */
+        .tab-bar {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            padding: 0 30px;
+            background: #fcfcfc;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .tab-button {
+            padding: 15px 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.05em;
+            color: #666;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            margin-right: 10px;
+        }
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        /* Main Content and Form Layout */
+        .tab-content {
+            padding: 30px;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        
+        /* --- Event Publishing Form --- */
+        .admin-form-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .admin-form-group > div {
+            flex: 1;
+        }
+        .admin-form-group label {
+            font-weight: 600;
+        }
+        .admin-form-group input, 
+        .admin-form-group select,
+        .admin-form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        .admin-form-group textarea {
+            resize: vertical;
+        }
+        .admin-form-submit-row button {
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.0em;
+            transition: background-color 0.3s;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+        }
+        .admin-form-submit-row button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        /* --- Event Management & Report List --- */
+        #eventListForAdmin {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+            border-top: 1px solid #eee;
+        }
+        .event-management-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .event-info { flex-grow: 1; }
+        .event-info h4 {
+            margin: 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+        .event-info p {
+            margin: 2px 0 0;
+            font-size: 0.85em;
+            color: #777;
+        }
+        .event-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .edit-btn {
+            background-color: #ffc107; /* Yellow for edit */
+            color: #333;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+        .delete-btn {
+            background-color: #dc3545; /* Red color for danger */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        
+        /* Registration Report Styles */
+        .registration-report {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        .report-user-list {
+            list-style: none;
+            padding-left: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .report-user-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .remove-reg-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            cursor: pointer;
+        }
+        
+        /* User Management & Verification Styles */
+        .user-management-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .user-management-info h4 {
+             margin: 0 0 5px 0;
+             color: var(--primary-color);
+        }
+        
+        body.dark-mode .user-management-list-item {
+            background-color: #2b2b2b;
+            border-color: #555;
+        }
+        body.dark-mode .user-management-info h4 {
+            color: #ff754a;
+        }
+        body.dark-mode .user-management-info p {
+            color: #ccc;
+        }
+        
+        /* Modal for User Editing */
+        #userEditModal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+        #userEditModalContent {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+        #userEditModalContent label {
+            display: block;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        #userEditModalContent input, #userEditModalContent select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        body.dark-mode #userEditModalContent {
+            background: var(--dark-surface);
+        }
+        body.dark-mode #userEditModalContent label {
+            color: var(--dark-text);
+        }
+        body.dark-mode #userEditModalContent input, body.dark-mode #userEditModalContent select {
+            background: var(--dark-input-bg);
+            color: var(--dark-text);
+            border-color: #555;
+        }
+
+        /* ⭐ FIX: Dark Mode Read-Only Input Visibility ⭐ */
+        body.dark-mode #userEditModalContent input[readonly] {
+            background-color: #222 !important;
+            color: #ccc !important;
+            border-color: #555 !important;
+        }
+        /* ⭐ END FIX ⭐ */
+
+        /* ⭐ DROPDOWN CONTAINER STYLES ⭐ */
+        .semester-dropdown-wrapper {
+            position: relative;
+        }
+
+        .semester-toggle-button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+            text-align: left;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .semester-toggle-button:hover {
+            background-color: #f5f5f5;
+        }
+        
+        /* ⭐ COLLAPSIBLE CHECKBOXES STYLES ⭐ */
+        .semester-checkboxes {
+            max-height: 0; 
+            overflow: hidden; 
+            transition: max-height 0.3s ease-in-out, border 0.3s;
+            
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 15px;
+            padding: 0 10px; 
+            margin-top: 5px;
+            border: 1px solid transparent; 
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .semester-checkboxes.show {
+            max-height: 200px; 
+            padding: 10px;
+            border-color: #ddd;
+        }
+
+        .semester-checkboxes label {
+            font-weight: normal;
+            font-size: 0.9em;
+            cursor: pointer;
+            flex-shrink: 0; 
+            padding: 0;
+            margin: 0;
+        }
+
+        .semester-checkboxes input[type="checkbox"] {
+            width: auto; 
+            margin-right: 5px;
+            padding: 0;
+        }
+
+        /* Styling for the Select All option */
+        .semester-checkboxes #selectAllSemesters {
+            margin-right: 5px;
+        }
+
+        /* ⭐ DARK MODE ADMIN INPUT/TAB STYLES ⭐ */
+        body.dark-mode #adminInterface {
+            background: var(--dark-bg);
+            box-shadow: var(--dark-shadow);
+        }
+
+        body.dark-mode .tab-bar {
+            background: var(--dark-bg);
+            border-bottom-color: #333;
+        }
+        
+        body.dark-mode .tab-button {
+            color: var(--dark-text);
+            background: var(--dark-bg);
+        }
+
+        body.dark-mode .tab-button.active {
+            background: var(--dark-bg);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        /* ⭐ FIX: Search Bar and standard form inputs in dark mode ⭐ */
+        body.dark-mode .admin-form-group input,
+        body.dark-mode .admin-form-group select,
+        body.dark-mode .admin-form-group textarea,
+        body.dark-mode #userSearchInput {
+            background: #333;
+            color: var(--dark-text);
+            border-color: #555;
+        }
+        /* ⭐ END FIX ⭐ */
+        
+        body.dark-mode .event-management-item {
+            border-bottom-color: #333;
+        }
+        
+        body.dark-mode .registration-report {
+            border-color: #555;
+            background: #2b2b2b;
+        }
+        
+        body.dark-mode .report-user-list li {
+            background: #333;
+            border-bottom-color: #444;
+        }
+        
+        /* Dark Mode adjustment for new container */
+        body.dark-mode .semester-toggle-button {
+            background-color: #333;
+            color: var(--dark-text);
+            border-color: #555;
+        }
+        body.dark-mode .semester-toggle-button:hover {
+            background-color: #444;
+        }
+        body.dark-mode .semester-checkboxes {
+            background-color: #2b2b2b;
+            border-color: #333;
+        }
+        body.dark-mode .semester-checkboxes.show {
+            border-color: #555;
+        }
+        body.dark-mode .semester-checkboxes input[type="checkbox"] {
+            background: #333;
+            border-color: #555;
+        }
+        
+        /* Style for the new Dark Mode button */
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0 15px;
+            transition: color 0.3s;
+        }
+        .dark-mode-toggle:hover {
+            color: var(--secondary-color);
+        }
+
+        /* New section for Admin verification/help requests */
+        .verification-card {
+            border: 1px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background: #fff8e1; /* Light yellow background */
+        }
+        body.dark-mode .verification-card {
+            background: #3c2a00;
+            border-color: #ffc107;
+        }
+        
+        /* ⭐ MODIFIED: Help Request Specific Styles (Attractive) ⭐ */
+        .help-request-card {
+            border: 1px solid #ff754a; /* Orange border (Primary color) */
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background: #ffecdf; /* Very light orange background */
+            color: #333;
+        }
+        body.dark-mode .help-request-card {
+            background: #2b170c; /* Very dark burnt orange/brown background */
+            border-color: #FF4B2B;
+            color: #f0f0f0;
+        }
+        
+        .help-request-card p {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        /* Style for time/status in help requests */
+        .help-request-card p:nth-child(2) {
+             color: #6c757d; 
+        }
+        body.dark-mode .help-request-card p:nth-child(2) {
+             color: #aaa;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        /* Style for Mark Resolved Button */
+        .action-group button.mark-accepted {
+            background-color: #28a745; /* Green for accepted */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+        .action-group button.mark-accepted:hover {
+            background-color: #1e7e34;
+        }
+        .action-group button.mark-denied {
+            background-color: #dc3545; /* Red for denied */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+        .action-group button.mark-denied:hover {
+            background-color: #c82333;
+        }
+        /* ⭐ END MODIFIED: Help Request Specific Styles ⭐ */
+
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 768px) {
+            .admin-form-group {
+                flex-direction: column;
+                gap: 0;
+            }
+            #adminInterface {
+                margin: 20px auto;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <h1 class="nav-brand">EVENT HUB Admin</h1>
+        <nav>
+            <a href="home.html" class="nav-link">Dashboard</a>
+        </nav>
+        <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">☀️ Dark Mode</button>
+        <button class="logout-btn" onclick="logoutUser()">Logout</button>
+    </header>
+
+    <div id="adminInterface">
+        <div class="tab-bar">
+            <button class="tab-button active" onclick="openTab('publish')">Event Management</button>
+            <button class="tab-button" onclick="openTab('verification')">User Management</button>
+            <button class="tab-button" onclick="openTab('report')">Registration Report</button>
+            <button class="tab-button" onclick="openTab('requests')">Requests & Help</button> 
+        </div>
+
+        <div class="tab-content">
+            <div id="publish" class="tab-pane active">
+                <h2 id="formTitle" style="color: #FF4B2B; margin-bottom: 25px; font-size: 1.8em;">Add New Event</h2>
+                <form id="addEventForm">
+                    <input type="hidden" id="eventId">
+                    <input type="hidden" id="existingImageUrl"> 
+
+                    <div class="admin-form-group">
+                        <div>
+                            <label for="eventName">Event Name</label>
+                            <input type="text" id="eventName" required>
+                        </div>
+                        <div>
+                            <label for="eventLocation">Location</label>
+                            <input type="text" id="eventLocation" required>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-group">
+                        <div>
+                            <label for="maxCapacity">Max Capacity (e.g., 50)</label>
+                            <input type="number" id="maxCapacity" min="1" value="50" required>
+                        </div>
+                    </div>
+                    <div class="admin-form-group">
+                        <div style="flex: 0 0 50%;">
+                            <label for="eventDate">Date</label>
+                            <input type="date" id="eventDate" required> 
+                        </div>
+                        <div style="flex: 0 0 50%;">
+                            <label for="eventTime">Time</label>
+                            <input type="text" id="eventTime" required 
+                                   placeholder="HH:MM AM/PM (e.g., 07:30 PM)"
+                                   pattern="^((0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM))$"
+                                   title="Time must be in HH:MM AM or HH:MM PM format."> 
+                        </div>
+                    </div>
+                    <div class="admin-form-group">
+                        <div id="semesterSelectionContainer">
+                            <label style="display: block; margin-bottom: 5px;">Semester Eligibility</label>
+                            
+                            <div class="semester-dropdown-wrapper">
+                                <button type="button" class="semester-toggle-button" onclick="toggleSemesterDropdown(this)">
+                                    <span id="semesterSelectionDisplay">Select Semesters (S1-S8)...</span>
+                                    <span>▼</span>
+                                </button>
+
+                                <div class="semester-checkboxes" id="semesterCheckboxes">
+                                    
+                                    <label style="font-weight: 700;">
+                                        <input type="checkbox" id="selectAllSemesters" onchange="toggleSelectAll(this)"> 
+                                        Select/Deselect All
+                                    </label>
+                                    <div style="width: 100%; border-top: 1px dashed #ccc; margin: 5px 0 10px; padding-top: 5px;"></div>
+                                    <label><input type="checkbox" name="eventSemester" value="S1" onchange="updateSemesterDisplay()"> S1</label>
+                                    <label><input type="checkbox" name="eventSemester" value="S2" onchange="updateSemesterDisplay()"> S2</label>
+                                    <label><input type="checkbox" name="eventSemester" value="S3" onchange="updateSemesterDisplay()"> S3</label>
+                                    <label><input type="checkbox" name="eventSemester" value="S4" onchange="updateSemesterDisplay()"> S4</label>
+                                    <label><input type="checkbox" name="eventSemester" value="S5" onchange="updateSemesterDisplay()"> S5</label>
+                                    <label><input type="checkbox" name="eventSemester" value="S6" onchange="updateSemesterDisplay()"> S6</label>
+                                    <label><input type="checkbox" name="eventSemester" value="S7" onchange="updateSemesterDisplay()"> S7</label>
+                                    <label><input type="checkbox" name="eventSemester" value="S8" onchange="updateSemesterDisplay()"> S8</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-group">
+                        <div>
+                            <label for="eventStatus">Status</label>
+                            <select id="eventStatus" required>
+                                <option value="open">Registration Open</option>
+                                <option value="closed">Registration Closed</option>
+                            </select>
+                        </div>
+                         <div style="flex: 0 0 50%;"> 
+                            <label style="display: block; margin-bottom: 15px;">
+                                <input type="checkbox" id="requiresRegistration" checked style="width: auto; margin-right: 10px;">
+                                **Registration Required** (Uncheck for Free/Open Events)
+                            </label>
+                            <label style="display: block;">
+                                <input type="checkbox" id="isFeatured" style="width: auto; margin-right: 10px;">
+                                Mark as Featured Event
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-group" style="align-items: flex-end;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px;">Event Image (Optional)</label>
+                            <input type="file" id="eventImage" accept="image/*" style="padding-top: 15px;">
+                        </div>
+                    </div>
+                    <div class="admin-form-group">
+                        <div style="width: 100%;">
+                            <label for="eventDescription">Description (Optional)</label>
+                            <textarea id="eventDescription" rows="3"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-form-submit-row">
+                        <button type="submit" id="submitButton">Publish Event</button>
+                        <button type="button" id="cancelEditButton" onclick="resetForm()" style="display: none; margin-left: 10px; background-color: #6c757d;">Cancel Edit</button>
+                    </div>
+                </form>
+                <p id="message" style="margin-top: 20px; color: green;"></p>
+                
+                <hr style="margin: 30px 0 20px;">
+                
+                <h2 style="color: #FF4B2B; margin-bottom: 25px; font-size: 1.8em;">Delete/Edit Existing Events</h2>
+                <div id="eventListForAdmin">
+                    <p>Loading events...</p>
+                </div>
+                <p id="deleteMessage" style="margin-top: 20px; color: green;"></p>
+            </div>
+
+            <div id="verification" class="tab-pane">
+                <h2 style="color: #ffc107; margin-bottom: 25px; font-size: 1.8em;">Manage User Accounts</h2>
+                
+                <input type="text" id="userSearchInput" onkeyup="searchUsers()" 
+                       placeholder="Search users by username..."
+                       style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                <div id="verificationListContainer">
+                    <h3 style="color: #FF4B2B; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Pending Semester/Profile Changes</h3>
+                    <div id="pendingChangesList">
+                        <p style="color: #666;">No pending requests for verification.</p>
+                    </div>
+                    
+                    <h3 style="color: #FF4B2B; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 10px;">All User Accounts</h3>
+                </div>
+                
+                <div id="userListForAdmin">
+                    <p style="color: #666;">Scanning local storage for user data...</p>
+                </div>
+            </div>
+
+            <div id="report" class="tab-pane">
+                <h2 style="color: #007bff; margin-bottom: 25px; font-size: 1.8em;">Detailed Registration Report</h2>
+                <div id="registrationReportContainer">
+                    <p style="color: #666;">Report will load here. This scans all user data saved on this browser.</p>
+                </div>
+            </div>
+            
+            <div id="requests" class="tab-pane">
+                <h2 style="color: #007bff; margin-bottom: 25px; font-size: 1.8em;">User Help Requests</h2>
+                <div id="helpRequestsList">
+                    <p style="color: #666;">Loading user help requests...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="userEditModal" class="modal">
+        <div id="userEditModalContent">
+            <h3>Edit User Profile</h3>
+            <form id="userEditForm">
+                <input type="hidden" id="editUsernameHolder">
+                
+                <label for="editUsername">Username</label>
+                <input type="text" id="editUsername" required> 
+                
+                <label for="editPassword">Password (Hashed/Unsaved)</label>
+                <input type="text" id="editPassword" placeholder="Enter new password to change" required>
+
+                <label for="editSemester">Semester</label>
+                <select id="editSemester">
+                    <option value="S1">Semester 1 (S1)</option>
+                    <option value="S2">Semester 2 (S2)</option>
+                    <option value="S3">Semester 3 (S3)</option>
+                    <option value="S4">Semester 4 (S4)</option>
+                    <option value="S5">Semester 5 (S5)</option>
+                    <option value="S6">Semester 6 (S6)</option>
+                    <option value="S7">Semester 7 (S7)</option>
+                    <option value="S8">Semester 8 (S8)</option>
+                    <option value="N/A">Not Set</option>
+                </select>
+                
+                <label for="editJoined">Joined Date</label>
+                <input type="text" id="editJoined" readonly style="background-color: #eee;">
+                
+                <label for="editLastLogin">Last Sign-in</label>
+                <input type="text" id="editLastLogin" readonly style="background-color: #eee;">
+                
+                <label for="editLastLogout">Last Sign-out</label>
+                <input type="text" id="editLastLogout" readonly style="background-color: #eee;">
+                <p id="editUserMessage" style="margin: 10px 0; color: green;"></p>
+                
+                <button type="button" onclick="saveUserChanges()" 
+                    style="background-color: #28a745; color: white; border: none; padding: 10px 18px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 10px; transition: background-color 0.2s;"
+                    onmouseover="this.style.backgroundColor='#1e7e34'" 
+                    onmouseout="this.style.backgroundColor='#28a745'">
+                    Save User Changes
+                </button>
+                <button type="button" onclick="closeUserEditModal()" 
+                    style="background-color: #495057; color: #fff; border: none; padding: 10px 18px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background-color 0.2s;"
+                    onmouseover="this.style.backgroundColor='#343a40'"
+                    onmouseout="this.style.backgroundColor='#495057'">
+                    Close
+                </button>
+                </form>
+        </div>
+    </div>
+
+
+    <script>
+        const API_URL = 'http://localhost:8080/api/events';
+        const currentUser = localStorage.getItem('currentUser');
+        const addEventForm = document.getElementById('addEventForm');
+        const messageElement = document.getElementById('message');
+        const deleteMessageElement = document.getElementById('deleteMessage');
+        const eventListForAdmin = document.getElementById('eventListForAdmin');
+        const registrationReportContainer = document.getElementById('registrationReportContainer');
+        const userListForAdmin = document.getElementById('userListForAdmin');
+        const helpRequestsList = document.getElementById('helpRequestsList');
+        const pendingChangesList = document.getElementById('pendingChangesList');
+        const formTitle = document.getElementById('formTitle');
+        const submitButton = document.getElementById('submitButton');
+        const cancelEditButton = document.getElementById('cancelEditButton');
+        const existingImageUrl = document.getElementById('existingImageUrl');
+        const ADMIN_USERNAME = 'admin';
+        
+        // --- NEW GLOBAL CACHE for search functionality ---
+        let allUsersCache = []; 
+        
+        // --- DARK MODE LOGIC (Copied from home.html) ---
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        
+        function applyDarkMode(isDark) {
+            document.body.classList.toggle('dark-mode', isDark);
+            darkModeToggle.innerHTML = isDark ? '🌙 Light Mode' : '☀️ Dark Mode';
+        }
+
+        window.toggleDarkMode = function() {
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkModeEnabled', !isDark);
+            applyDarkMode(!isDark);
+        }
+        
+        // Apply theme on load
+        const storedTheme = localStorage.getItem('darkModeEnabled');
+        if (storedTheme === 'true') {
+            applyDarkMode(true);
+        }
+        // --- END DARK MODE LOGIC ---
+
+
+        let eventCache = []; // Cache events for report use
+
+        // --- Tab Logic (MODIFIED to handle 'requests' tab) ---
+        window.openTab = function(tabName) {
+            const tabs = document.getElementsByClassName('tab-pane');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            const buttons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`.tab-button[onclick="openTab('${tabName}')"]`).classList.add('active');
+
+            if (tabName === 'report') {
+                renderRegistrationReport();
+            } else if (tabName === 'verification') {
+                 // Clear search bar and render list when opening tab
+                 document.getElementById('userSearchInput').value = '';
+                 renderUserManagementList(); 
+                 renderPendingChanges(); // NEW: Render verification list
+            } else if (tabName === 'requests') {
+                 renderHelpRequests(); // NEW: Render help requests
+            }
+        }
+
+
+        // --- Admin Check ---
+        if (currentUser !== 'admin') {
+            alert("Access Denied. Only the Admin can access this page.");
+            window.location.href = 'home.html'; 
+        }
+
+        window.logoutUser = function() { 
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        }
+        
+        // --- Form Utility Functions ---
+        window.resetForm = function() {
+            addEventForm.reset();
+            document.getElementById('eventId').value = '';
+            formTitle.textContent = 'Add New Event';
+            submitButton.textContent = 'Publish Event';
+            cancelEditButton.style.display = 'none';
+            messageElement.textContent = '';
+            existingImageUrl.value = ''; // Reset hidden URL field
+            document.getElementById('maxCapacity').value = '50'; // Reset Max Capacity
+            
+            // Reset checkboxes and display text
+            setSemesterCheckboxes([]);
+            updateSemesterDisplay();
+            document.getElementById('semesterCheckboxes').classList.remove('show');
+            // Ensure Select All is unchecked when form is reset
+            document.getElementById('selectAllSemesters').checked = false;
+            // Set requiresRegistration to checked by default
+            document.getElementById('requiresRegistration').checked = true;
+        }
+
+        // --- UTILITY FUNCTIONS FOR CHECKBOXES & TOGGLE & TIME CONVERSION ---
+        
+        // MODIFIED: Converts 12-hour format to 24-hour format with INVERSE AM/PM logic for submission
+        function convertTo24Hour(time12h) {
+            if (!time12h) return '';
+            const timeUpper = time12h.toUpperCase().trim();
+            const [time, modifier] = timeUpper.split(' ');
+            if (!time || !modifier) return '';
+
+            let [hours, minutes] = time.split(':');
+            let h = parseInt(hours, 10);
+            
+            // --- INVERSE LOGIC START ---
+            if (modifier === 'PM') {
+                // PM entered, but we want the AM equivalent (e.g., 3 PM -> 3 AM (03))
+                if (h === 12) {
+                    h = 0; // 12 PM (noon) -> 00 AM (midnight)
+                } 
+                // All other PM hours (1-11) remain the same (1 PM -> 01, 11 PM -> 11)
+            } else if (modifier === 'AM') {
+                // AM entered, but we want the PM equivalent (e.g., 9 AM -> 9 PM (21))
+                if (h !== 12) {
+                    h += 12; // 1 AM -> 13 (1 PM), 11 AM -> 23 (11 PM)
+                }
+                // 12 AM (midnight) remains 12 (12 PM)
+            }
+            // --- INVERSE LOGIC END ---
+            
+            // Ensure minutes are 2 digits
+            return `${h.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+        }
+        
+        // Standard (NON-INVERSE) conversion for display in the admin list summary
+        function convertTo12Hour(time24h) {
+            if (!time24h) return '';
+            let [hours, minutes] = time24h.split(':');
+            let h = parseInt(hours, 10);
+            const modifier = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12; // Convert 0 to 12 and handle 13-23
+            return `${h.toString().padStart(2, '0')}:${minutes} ${modifier}`;
+        }
+
+        // NEW: Inverse conversion logic specifically for RE-POPULATING the edit form input
+        function inverseConvertTo12Hour(time24h) {
+            if (!time24h) return '';
+            let [hours, minutes] = time24h.split(':');
+            let h = parseInt(hours, 10);
+            
+            let modifier;
+            
+            // --- INVERSE LOGIC REVERSE START ---
+            if (h >= 12) {
+                // Saved time is PM equivalent (e.g., 13-23 or 12). This means original input was AM.
+                modifier = 'AM';
+                if (h === 12) {
+                    // Saved 12:xx (12 PM) means original input was 12 AM
+                    h = 12;
+                } else {
+                    // Saved 13:xx (1 PM) means original input was 1 AM (13 - 12 = 1)
+                    h = h - 12;
+                }
+            } else {
+                // Saved time is AM equivalent (e.g., 00-11). This means original input was PM.
+                modifier = 'PM';
+                if (h === 0) {
+                    // Saved 00:xx (midnight) means original input was 12 PM
+                    h = 12;
+                }
+                // All other hours remain the same (1-11)
+            }
+            // --- INVERSE LOGIC REVERSE END ---
+
+            return `${h.toString().padStart(2, '0')}:${minutes} ${modifier}`;
+        }
+
+
+        function getSelectedSemesters() {
+            const checkboxes = document.querySelectorAll('input[name="eventSemester"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function setSemesterCheckboxes(semestersArray) {
+            const checkboxes = document.querySelectorAll('input[name="eventSemester"]');
+            checkboxes.forEach(cb => {
+                const semesterValue = cb.value;
+                cb.checked = semestersArray.some(s => s.trim() === semesterValue);
+            });
+            // Also update the 'Select All' checkbox based on the result
+            const allBoxes = document.querySelectorAll('input[name="eventSemester"]').length;
+            const checkedBoxes = document.querySelectorAll('input[name="eventSemester"]:checked').length;
+            const selectAll = document.getElementById('selectAllSemesters');
+            
+            // Only check Select All if checkedBoxes is 8 (or matches the total available)
+            if (selectAll) {
+                selectAll.checked = (checkedBoxes > 0 && checkedBoxes === allBoxes);
+            }
+        }
+        
+        // NEW: Function to handle Select All/Deselect All
+        window.toggleSelectAll = function(source) {
+            const checkboxes = document.querySelectorAll('input[name="eventSemester"]');
+            for (let i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = source.checked;
+            }
+            updateSemesterDisplay();
+        }
+
+        window.toggleSemesterDropdown = function() {
+            document.getElementById('semesterCheckboxes').classList.toggle('show');
+        }
+
+        window.updateSemesterDisplay = function() {
+            const selected = getSelectedSemesters();
+            const displayElement = document.getElementById('semesterSelectionDisplay');
+            
+            if (selected.length === 0) {
+                displayElement.textContent = 'Select Semesters (S1-S8)...';
+            } else if (selected.length === 8) {
+                displayElement.textContent = 'All Semesters (S1-S8) Selected';
+            } else {
+                displayElement.textContent = selected.join(', ');
+            }
+
+            // Manually check the state of the 'Select All' box based on individual selections
+            const selectAll = document.getElementById('selectAllSemesters');
+            if (selectAll) {
+                const allBoxes = document.querySelectorAll('input[name="eventSemester"]').length;
+                selectAll.checked = (selected.length === allBoxes);
+            }
+        }
+        // --- END UTILITY FUNCTIONS ---
+        
+        // NEW: Utility function to format ISO date string for display
+        function formatUserDate(isoString) {
+            if (isoString === 'N/A' || !isoString) return 'N/A';
+            try {
+                const date = new Date(isoString);
+                // Use built-in locale settings for clean date and time display
+                // NOTE: Using 'en-GB' format (Day/Month/Year) which is common, but can be changed.
+                return date.toLocaleDateString('en-GB') + ' ' + date.toLocaleTimeString();
+            } catch (e) {
+                return 'Invalid Date';
+            }
+        }
+
+        // --- Event Submission/Update Logic ---
+        addEventForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const eventId = document.getElementById('eventId').value;
+            const isEditing = !!eventId;
+            const method = isEditing ? 'PUT' : 'POST';
+            const url = isEditing ? `${API_URL}/${eventId}` : API_URL;
+
+            // 🛑 DATE/TIME SUBMISSION LOGIC 🛑
+            const datePart = document.getElementById('eventDate').value; // YYYY-MM-DD
+            const time12hPart = document.getElementById('eventTime').value.trim(); // HH:MM AM/PM
+            const maxCapacity = document.getElementById('maxCapacity').value; // NEW
+
+            // Convert the 12H input using the INVERSE logic
+            const time24hPart = convertTo24Hour(time12hPart);
+            
+            if (!time24hPart) {
+                alert("Please ensure the Time is entered correctly in HH:MM AM/PM format (e.g., 07:30 PM).");
+                return;
+            }
+            
+            // Combine date and time into YYYY-MM-DDTHH:MM:SS format
+            const formattedDateTime = datePart + 'T' + time24hPart + ':00'; 
+            
+            const imageFile = document.getElementById('eventImage').files[0]; 
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('eventName').value.trim());
+            formData.append('description', document.getElementById('eventDescription').value.trim());
+            formData.append('date', formattedDateTime); // Use combined date/time
+            formData.append('location', document.getElementById('eventLocation').value.trim());
+            
+            // NEW: Append Max Capacity
+            formData.append('maxCapacity', maxCapacity); 
+            
+            formData.append('semester', getSelectedSemesters().join(',')); 
+            
+            formData.append('status', document.getElementById('eventStatus').value);
+            formData.append('requiresRegistration', document.getElementById('requiresRegistration').checked); 
+            formData.append('featured', document.getElementById('isFeatured').checked);
+            
+            if (imageFile) {
+                formData.append('image', imageFile); // Send new file
+            } else if (isEditing) {
+                // If editing and no new file is selected, preserve the existing image URL
+                const existingUrl = existingImageUrl.value;
+                if (existingUrl) {
+                    formData.append('existingImageUrl', existingUrl); 
+                }
+            }
+
+
+            messageElement.style.color = 'gray';
+            messageElement.textContent = isEditing ? 'Saving changes...' : 'Publishing event...';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    body: formData 
+                });
+                
+                if (!response.ok) {
+                    // Check if server returned a specific error response
+                    const errorText = await response.text();
+                    throw new Error(`Failed to save event. Status: ${response.status}. Message: ${errorText.substring(0, 100)}`);
+                }
+                
+                const savedEvent = await response.json();
+
+                messageElement.style.color = 'green';
+                messageElement.textContent = isEditing 
+                    ? `Event "${savedEvent.name}" (ID: ${savedEvent.id}) updated successfully!`
+                    : `Event "${savedEvent.name}" published successfully! ID: ${savedEvent.id}`;
+                
+                resetForm();
+                await renderAdminEvents(); 
+                
+            } catch (error) {
+                console.error("Error saving event:", error);
+                messageElement.style.color = 'red';
+                messageElement.textContent = `Error: Could not connect to the server or save event. Is the Java server running?`;
+                // Add detail for file size error, as this was common:
+                if (error.message.includes('Status: 413')) {
+                    messageElement.textContent = `Error: File size too large. Check application.properties or use a smaller image.`;
+                }
+            }
+            
+            setTimeout(() => { messageElement.textContent = ''; }, 5000);
+        });
+
+        // --- 4. Event Editing (Populate Form) Logic ---
+        window.editEvent = function(eventId) {
+            const event = eventCache.find(e => e.id === eventId);
+            if (!event) return;
+
+            // 1. Set form to EDIT mode
+            formTitle.textContent = `Editing Event: ${event.name} (ID: ${event.id})`;
+            submitButton.textContent = 'Save Changes';
+            cancelEditButton.style.display = 'inline-block';
+
+            // 2. Populate hidden ID field and hidden existingImageUrl field
+            document.getElementById('eventId').value = event.id;
+            existingImageUrl.value = event.imageUrl || ''; // IMPORTANT: Preserve existing URL for PUT request
+
+
+            // 3. Populate standard fields
+            document.getElementById('eventName').value = event.name;
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventLocation').value = event.location;
+            
+            // NEW: Populate Max Capacity
+            document.getElementById('maxCapacity').value = event.maxCapacity || 50; 
+            
+            // Populate semester checkboxes from comma-separated string and update display
+            const eventSemestersArray = event.semester ? event.semester.split(',').map(s => s.trim()) : [];
+            setSemesterCheckboxes(eventSemestersArray);
+            updateSemesterDisplay(); 
+            // Ensure the dropdown is open for editing
+            document.getElementById('semesterCheckboxes').classList.add('show');
+
+
+            document.getElementById('eventStatus').value = event.status;
+            
+            // If the property exists and is false, uncheck it. Otherwise, assume checked (true).
+            document.getElementById('requiresRegistration').checked = event.requiresRegistration !== false;
+            
+            document.getElementById('isFeatured').checked = event.featured;
+
+            // 4. Populate Date/Time field
+            if (event.date) {
+                const isoDate = new Date(event.date).toISOString();
+                
+                // Extract only the date component (YYYY-MM-DD)
+                const dateComponent = isoDate.substring(0, 10); 
+                
+                // Extract 24-hour time component (HH:MM) from the saved date string
+                const time24hComponent = event.date.substring(11, 16); 
+                
+                // CONVERT 24H time back to the original 12H input format using the NEW INVERSE REVERSE logic
+                const time12hComponent = inverseConvertTo12Hour(time24hComponent);
+
+                document.getElementById('eventDate').value = dateComponent;
+                // UPDATED: Populate the HTML text input with the reconstructed 12-hour format
+                document.getElementById('eventTime').value = time12hComponent; 
+            } else {
+                document.getElementById('eventDate').value = '';
+                document.getElementById('eventTime').value = '';
+            }
+
+            // 5. Clear the file input field, preserving the URL in the hidden input
+            document.getElementById('eventImage').value = null; 
+
+            // 6. Scroll to the form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+
+        // --- 5. Event Deletion Logic (DELETE API CALL) ---
+
+        window.deleteEvent = async function(eventId) {
+            if (!confirm(`Are you sure you want to delete Event ID ${eventId}? This action cannot be undone.`)) {
+                return;
+            }
+
+            deleteMessageElement.style.color = 'gray';
+            deleteMessageElement.textContent = `Deleting Event ID ${eventId}...`;
+
+            try {
+                const response = await fetch(`${API_URL}/${eventId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok || response.status === 204) { 
+                    deleteMessageElement.style.color = 'green';
+                    deleteMessageElement.textContent = `Event ID ${eventId} deleted successfully.`;
+                    
+                    await renderAdminEvents(); 
+                } else {
+                    throw new Error(`Failed to delete event. Server status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error("Error deleting event:", error);
+                deleteMessageElement.style.color = 'red';
+                deleteMessageElement.textContent = `Error: Could not delete event. Please check the Java console.`;
+            }
+            setTimeout(() => { deleteMessageElement.textContent = ''; }, 5000);
+        }
+
+        // --- 6. Event Listing Logic (GET API CALL) ---
+
+        async function fetchEventsData() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error("Failed to fetch events.");
+                }
+                const events = await response.json();
+                eventCache = events; // Update cache
+                return events;
+            } catch (error) {
+                console.error("Could not fetch events:", error);
+                return [];
+            }
+        }
+        
+        async function renderAdminEvents() {
+            eventListForAdmin.innerHTML = '<p>Loading events...</p>';
+            
+            const events = await fetchEventsData();
+            
+            if (events.length === 0) {
+                eventListForAdmin.innerHTML = '<p>No events have been created yet.</p>';
+                return;
+            }
+
+            let listHTML = '';
+            events.forEach(event => {
+                // Use built-in date formatting for the list summary
+                const dateDisplay = new Date(event.date).toLocaleDateString();
+                const time24h = event.date.substring(11, 16);
+                
+                // IMPORTANT: Use standard convertTo12Hour for ADMIN LIST DISPLAY
+                const timeDisplay = convertTo12Hour(time24h);
+                
+                // Check if all 8 semesters were selected (comma-separated string)
+                const semesterDisplay = event.semester && event.semester.split(',').length === 8
+                    ? 'S1-S8 (All)'
+                    : event.semester || 'N/A';
+                    
+                // Determine registration status text
+                const regRequiredText = event.requiresRegistration === false
+                    ? 'NO REGISTRATION'
+                    : 'REGISTRATION REQUIRED';
+                    
+                // Display Capacity
+                const capacityDisplay = event.maxCapacity ? `Capacity: ${event.maxCapacity}` : 'Capacity: N/A';
+
+                // Use a standard placeholder/initials for image URL on admin list
+                const imageUrlDisplay = event.imageUrl 
+                    ? event.imageUrl.split('/').pop() 
+                    : 'N/A';
+
+                listHTML += `
+                    <div class="event-management-item">
+                        <div class="event-info">
+                            <h4>${event.name} (ID: ${event.id})</h4>
+                            <p>On ${dateDisplay} at ${timeDisplay} | ${capacityDisplay} | **Semesters: ${semesterDisplay}** | Status: ${event.status} | **Reg: ${regRequiredText}**</p>
+                            <p style="color: #FF4B2B; font-size: 0.8em;">Image Filename: ${imageUrlDisplay}</p>
+                        </div>
+                        <div class="event-actions">
+                            <button class="edit-btn" onclick="editEvent(${event.id})">Edit</button>
+                            <button class="delete-btn" onclick="deleteEvent(${event.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            eventListForAdmin.innerHTML = listHTML;
+        }
+
+        // --- 7. Registration Report Logic (Client-Side Scan) ---
+        
+        window.renderRegistrationReport = function() {
+            const reportData = {};
+            const reportHTML = [];
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                
+                if (key.startsWith('user_')) {
+                    const username = key.substring(5); 
+                    if (username === 'admin') continue;
+                    
+                    const userData = JSON.parse(localStorage.getItem(key));
+                    
+                    if (userData && Array.isArray(userData.registeredEvents)) {
+                        
+                        userData.registeredEvents.forEach(eventId => {
+                            const eventIdNum = Number(eventId); 
+                            
+                            if (!reportData[eventIdNum]) {
+                                reportData[eventIdNum] = [];
+                            }
+                            reportData[eventIdNum].push(username);
+                        });
+                    }
+                }
+            }
+
+            const eventIds = Object.keys(reportData).map(Number);
+            
+            if (eventIds.length === 0) {
+                registrationReportContainer.innerHTML = '<p style="color: #FF4B2B;">No user registrations found on this browser.</p>';
+                return;
+            }
+
+            eventIds.forEach(eventId => {
+                const event = eventCache.find(e => e.id === eventId);
+                const eventName = event ? event.name : `[Unknown Event ID: ${eventId}]`;
+                const registeredUsers = reportData[eventId];
+                
+                // --- CAPACITY CHECK FOR REPORT ---
+                const maxCap = event ? event.maxCapacity : 'N/A';
+                const capacityInfo = maxCap !== 'N/A' ? `(${registeredUsers.length}/${maxCap})` : `(${registeredUsers.length} registered)`;
+                // ---------------------------------
+
+                reportHTML.push(`
+                    <div class="registration-report">
+                        <h5>${eventName} (ID: ${eventId}) ${capacityInfo}</h5>
+                        <p>Total Registered Users: ${registeredUsers.length}</p>
+                        <ul class="report-user-list">
+                            ${registeredUsers.map(user => 
+                                `<li>
+                                    <span>${user}</span>
+                                    <button class="remove-reg-btn" onclick="removeUserRegistration('${user}', ${eventId})">Remove Registration</button>
+                                </li>`).join('')}
+                        </ul>
+                    </div>
+                `);
+            });
+
+            registrationReportContainer.innerHTML = reportHTML.join('');
+        }
+        
+        // --- ADMIN VERIFICATION/REQUEST FUNCTIONS ---
+        
+        // Helper function to get admin data, initializing helpRequests if necessary
+        function getAdminData() {
+             const adminUserKey = 'user_' + ADMIN_USERNAME;
+             let adminData = JSON.parse(localStorage.getItem(adminUserKey));
+             
+             if (!adminData) {
+                  // Fallback for missing admin user key (should not happen if admin logged in)
+                  adminData = { registeredEvents: [], helpRequests: [] };
+             }
+             if (!adminData.helpRequests) {
+                 adminData.helpRequests = [];
+             }
+             return adminData;
+        }
+        
+        // Helper function to save resolution status to the user's data
+        function notifyUserOfResolution(username, status, problem) {
+            const userKey = 'user_' + username;
+            const userDataJSON = localStorage.getItem(userKey);
+            
+            if (userDataJSON) {
+                const userData = JSON.parse(userDataJSON);
+                
+                if (!userData.adminNotifications) {
+                    userData.adminNotifications = [];
+                }
+                
+                // Add the new resolution message to the user's notification list
+                const resolutionMessage = (status === 'Accepted')
+                    ? `Admin **ACCEPTED** your request regarding: "${problem}"`
+                    : `Admin **DENIED** your request regarding: "${problem}"`;
+                    
+                userData.adminNotifications.push({ 
+                    type: status,
+                    message: resolutionMessage,
+                    time: new Date().toLocaleTimeString()
+                });
+                
+                localStorage.setItem(userKey, JSON.stringify(userData));
+            }
+        }
+        
+        // Action: Resolve Help Request (MODIFIED)
+        window.resolveHelpRequest = function(index, status) {
+            const adminUserKey = 'user_' + ADMIN_USERNAME;
+            const adminData = getAdminData();
+            
+            if (index >= 0 && index < adminData.helpRequests.length) {
+                const resolvedRequest = adminData.helpRequests[index];
+                
+                // 1. Notify the target user
+                notifyUserOfResolution(resolvedRequest.user, status, resolvedRequest.description);
+                
+                // 2. Remove the request from the admin's queue
+                adminData.helpRequests.splice(index, 1);
+                localStorage.setItem(adminUserKey, JSON.stringify(adminData));
+                
+                alert(`Help request for ${resolvedRequest.user} marked as ${status} and user notified.`);
+                renderHelpRequests();
+            }
+        }
+
+        // Render Pending Semester/Profile Change Requests
+        window.renderPendingChanges = function() {
+            const users = allUsersCache; // Use the cached list
+            let pendingHTML = '';
+            let hasPending = false;
+            
+            users.forEach(user => {
+                if (user.pendingSemester) {
+                    hasPending = true;
+                    pendingHTML += `
+                        <div class="verification-card">
+                            <p style="font-weight: 700; color: #333;">User: ${user.username}</p>
+                            <p>Current: ${user.semester} ➡️ Requesting: ${user.pendingSemester}</p>
+                            <div class="action-group">
+                                <button onclick="approveSemesterChange('${user.username}', '${user.pendingSemester}')" style="background-color: #28a745; color: white;">Approve</button>
+                                <button onclick="denySemesterChange('${user.username}')" style="background-color: #dc3545; color: white;">Deny</button>
+                                <button onclick="openUserEditModal('${user.username}')" style="background-color: #ffc107; color: #333;">Edit User</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            pendingChangesList.innerHTML = hasPending ? pendingHTML : '<p style="color: #666; margin-top: 10px;">No pending requests for verification.</p>';
+        }
+        
+        // Render Help Requests from Users (MODIFIED)
+        window.renderHelpRequests = function() {
+            const adminData = getAdminData();
+            const requests = adminData.helpRequests || [];
+            
+            if (requests.length === 0) {
+                helpRequestsList.innerHTML = '<p style="color: #666; margin-top: 10px;">No outstanding help requests.</p>';
+                return;
+            }
+            
+            let requestsHTML = '';
+            requests.forEach((req, index) => {
+                requestsHTML += `
+                    <div class="help-request-card">
+                        <p style="font-weight: 700;">From: ${req.user} (Semester: ${req.semester})</p>
+                        <p style="font-size: 0.8em; color: inherit;">Time: ${req.time}</p>
+                        <p style="margin-top: 10px;">**Problem:** ${req.description}</p>
+                        <div class="action-group">
+                            <button class="mark-accepted" onclick="resolveHelpRequest(${index}, 'Accepted')">Mark Accepted</button>
+                            <button class="mark-denied" onclick="resolveHelpRequest(${index}, 'Denied')">Mark Denied</button>
+                        </div>
+                    </div>
+                `;
+            });
+            helpRequestsList.innerHTML = requestsHTML;
+        }
+
+        // Action: Approve Semester Change
+        window.approveSemesterChange = function(username, newSemester) {
+            const userKey = 'user_' + username;
+            const userData = JSON.parse(localStorage.getItem(userKey));
+            
+            userData.semester = newSemester;
+            userData.pendingSemester = null;
+            
+            localStorage.setItem(userKey, JSON.stringify(userData));
+            alert(`Approved semester change for ${username} to ${newSemester}.`);
+            renderPendingChanges();
+            renderUserManagementList();
+        }
+
+        // Action: Deny Semester Change
+        window.denySemesterChange = function(username) {
+            const userKey = 'user_' + username;
+            const userData = JSON.parse(localStorage.getItem(userKey));
+            
+            userData.pendingSemester = null; // Simply remove the pending flag
+            
+            localStorage.setItem(userKey, JSON.stringify(userData));
+            alert(`Denied semester change request for ${username}. Pending status cleared.`);
+            renderPendingChanges();
+            renderUserManagementList();
+        }
+        
+        // --- STANDARD USER MANAGEMENT FUNCTIONS ---
+        
+        // MODIFIED: Function to retrieve all users from local storage and cache the full list
+        function getAllUsers() {
+            const users = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('user_')) {
+                    const username = key.substring(5);
+                    if (username === 'admin') continue;
+
+                    const userDataJSON = localStorage.getItem(key);
+                    const userData = JSON.parse(userDataJSON);
+                    
+                    users.push({
+                        username: username,
+                        semester: userData.semester || 'N/A',
+                        pendingSemester: userData.pendingSemester || null,
+                        joinedDate: userData.joinedDate || 'N/A',
+                        lastLogin: userData.lastLogin || 'N/A',
+                        lastLogout: userData.lastLogout || 'N/A'
+                    });
+                }
+            }
+            allUsersCache = users; // Cache the full list for searching
+            return users;
+        }
+
+        // MODIFIED: Function to render the user list, accepting an optional array of users to display
+        window.renderUserManagementList = function(usersToRender) {
+            const users = usersToRender || getAllUsers(); 
+            
+            if (users.length === 0) {
+                const searchInput = document.getElementById('userSearchInput').value.trim();
+                const message = searchInput 
+                    ? `No user accounts found matching "${searchInput}".`
+                    : 'No standard user accounts found in local storage.';
+                    
+                userListForAdmin.innerHTML = `<p style="color: #666;">${message}</p>`;
+                return;
+            }
+            
+            let listHTML = '';
+            users.forEach(user => {
+                const pendingStatus = user.pendingSemester ? 
+                    `<span style="color:#ffc107; font-weight:700;"> (Pending: ${user.pendingSemester})</span>` : '';
+                
+                const joined = formatUserDate(user.joinedDate);
+                const lastLogin = formatUserDate(user.lastLogin);
+                const lastLogout = formatUserDate(user.lastLogout);
+                    
+                listHTML += `
+                    <div class="user-management-list-item">
+                        <div class="user-management-info">
+                            <h4>${user.username}</h4>
+                            <p>Current Semester: ${user.semester} ${pendingStatus}</p>
+                            
+                            <p style="font-size: 0.8em; color: #999;">
+                                Joined: ${joined} | Last Login: ${lastLogin} | Last Logout: ${lastLogout}
+                            </p>
+                        </div>
+                        <div class="user-management-actions">
+                            <button class="edit-btn" onclick="openUserEditModal('${user.username}')">Edit</button>
+                            <button class="delete-btn" onclick="deleteUser('${user.username}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            userListForAdmin.innerHTML = listHTML;
+        }
+        
+        window.searchUsers = function() {
+            const input = document.getElementById('userSearchInput');
+            const filter = input.value.toUpperCase();
+
+            if (allUsersCache.length === 0) {
+                getAllUsers();
+            }
+
+            const filteredUsers = allUsersCache.filter(user => 
+                user.username.toUpperCase().includes(filter)
+            );
+
+            renderUserManagementList(filteredUsers);
+        }
+        
+        window.openUserEditModal = function(username) {
+            const userKey = 'user_' + username;
+            const userData = JSON.parse(localStorage.getItem(userKey));
+            
+            document.getElementById('editUsernameHolder').value = username;
+            
+            document.getElementById('editUsername').value = username;
+            document.getElementById('editPassword').value = userData.password || ''; 
+            
+            document.getElementById('editSemester').value = userData.semester || 'N/A';
+            
+            document.getElementById('editJoined').value = formatUserDate(userData.joinedDate);
+            document.getElementById('editLastLogin').value = formatUserDate(userData.lastLogin);
+            document.getElementById('editLastLogout').value = formatUserDate(userData.lastLogout);
+            
+            const messageArea = document.getElementById('editUserMessage');
+            if (userData.pendingSemester) {
+                messageArea.innerHTML = `<span style="color: #ffc107;">PENDING REQUEST: Change to ${userData.pendingSemester}</span>`;
+            } else {
+                 messageArea.textContent = '';
+            }
+            
+            document.getElementById('userEditModal').style.display = 'flex';
+        }
+
+        window.closeUserEditModal = function() {
+            document.getElementById('userEditModal').style.display = 'none';
+        }
+
+        window.saveUserChanges = function() {
+            const oldUsername = document.getElementById('editUsernameHolder').value;
+            const newUsername = document.getElementById('editUsername').value.trim();
+            const newPassword = document.getElementById('editPassword').value;
+            const newSemester = document.getElementById('editSemester').value;
+            
+            const oldUserKey = 'user_' + oldUsername;
+            const newUserKey = 'user_' + newUsername;
+            
+            if (!newUsername || !newPassword) {
+                alert('Username and Password cannot be empty.');
+                return;
+            }
+            if (newUsername.length < 3 || newPassword.length < 5) {
+                alert('Username must be at least 3 characters and Password at least 5 characters.');
+                return;
+            }
+
+            if (oldUsername !== newUsername && localStorage.getItem(newUserKey)) {
+                alert(`Error: Username '${newUsername}' already exists.`);
+                return;
+            }
+
+            const userData = JSON.parse(localStorage.getItem(oldUserKey));
+
+            userData.password = newPassword;
+            userData.semester = newSemester;
+            userData.pendingSemester = null; 
+            
+            let successMessage = `User ${oldUsername} successfully updated.`;
+
+            if (oldUsername !== newUsername) {
+                localStorage.removeItem(oldUserKey);
+                localStorage.setItem(newUserKey, JSON.stringify(userData));
+                
+                successMessage = `User ${oldUsername} renamed to ${newUsername} and updated.`;
+            } else {
+                localStorage.setItem(oldUserKey, JSON.stringify(userData));
+            }
+
+            alert(successMessage);
+            closeUserEditModal();
+            renderUserManagementList(); 
+            renderPendingChanges(); 
+        }
+
+        window.deleteUser = function(username) {
+            if (!confirm(`WARNING: Are you sure you want to permanently delete the user account: ${username}? This cannot be undone.`)) {
+                return;
+            }
+            
+            const userKey = 'user_' + username;
+            localStorage.removeItem(userKey);
+            alert(`User ${username} successfully deleted.`);
+            renderUserManagementList(); 
+            renderPendingChanges();
+        }
+
+        window.removeUserRegistration = function(username, eventId) {
+            if (!confirm(`Are you sure you want to remove the registration of ${username} for Event ID ${eventId}?`)) {
+                return;
+            }
+            
+            const userKey = 'user_' + username;
+            const userDataJSON = localStorage.getItem(userKey);
+            
+            if (userDataJSON) {
+                const userData = JSON.parse(userDataJSON);
+                
+                userData.registeredEvents = (userData.registeredEvents || []).filter(id => Number(id) !== Number(eventId));
+                
+                localStorage.setItem(userKey, JSON.stringify(userData));
+                
+                alert(`Registration for Event ${eventId} removed for user ${username}.`);
+                
+                renderRegistrationReport();
+            } else {
+                alert(`Error: User ${username} not found in local storage.`);
+            }
+        }
+        
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAdminEvents();
+            updateSemesterDisplay(); 
+        });
+    </script>
+</body>
+</html>
