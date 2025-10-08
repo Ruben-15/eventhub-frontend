@@ -449,11 +449,12 @@
 
     <script>
         // --- 1. API & Data Setup ---
-        const API_URL_EVENTS = 'http://localhost:8080/api/events';
-        const API_URL_REGISTRATIONS = 'http://localhost:8080/api/registrations';
-        const API_URL_USER_DATA = 'http://localhost:8080/api/users'; 
-        const ADMIN_USERNAME = 'admin'; // Hardcoded admin username for internal logic
-
+    const LIVE_API_BASE = 'https://eventhub-api-kies.onrender.com';
+    const API_URL_EVENTS = LIVE_API_BASE + '/api/events';
+    const API_URL_REGISTRATIONS = LIVE_API_BASE + '/api/registrations';
+    const API_URL_USER_DATA = LIVE_API_BASE + '/api/users'; 
+    const ADMIN_USERNAME = 'admin'; // Hardcoded admin username for internal logi
+        
         let allEventsCache = []; 
         let currentUserDataCache = null; 
 
