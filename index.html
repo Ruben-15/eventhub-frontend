@@ -15,6 +15,21 @@
             font-weight: bold;
         }
         
+        /* NEW: Logo Styling for Overlay */
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .brand-logo {
+            height: 45px; /* Adjust size as needed */
+            width: auto;
+            margin-right: 10px;
+            /* Applying filter for visibility on the default white background of the image */
+            filter: brightness(0) invert(1); 
+        }
+        
         /* Override for the brand title inside the overlay */
         .overlay .brand-title {
             color: #FFFFFF; 
@@ -79,12 +94,18 @@
         <div class="overlay-container">
             <div class="overlay">
                 <div class="overlay-panel overlay-left">
-                    <h1 class="brand-title">EVENT HUB</h1>
+                    <div class="brand-logo-container">
+                        <img src="assets/logo.png" alt="Event Hub Logo" class="brand-logo">
+                        <h1 class="brand-title">EVENT HUB</h1>
+                    </div>
                     <p>Already have an account? Log in with your username and password.</p>
                     <button class="ghost" id="signInRedirect">Sign In</button>
                 </div>
                 <div class="overlay-panel overlay-right">
-                    <h1 class="brand-title">EVENT HUB</h1>
+                    <div class="brand-logo-container">
+                        <img src="assets/logo.png" alt="Event Hub Logo" class="brand-logo">
+                        <h1 class="brand-title">EVENT HUB</h1>
+                    </div>
                     <p>New here? Enter a username and password to quickly create an account and join us!</p>
                     <button class="ghost" id="signUpRedirect">Sign Up</button>
                 </div>
@@ -126,6 +147,14 @@
             },
             retina_detect: true
         });
+        
+        // --- API & Data Setup (CRITICAL FIX) ---
+        // ⭐ CRITICAL FIX: CHANGED TO LIVE RENDER DOMAIN ⭐
+        const LIVE_API_BASE = 'https://eventhub-api-kies.onrender.com';
+        const API_URL_EVENTS = LIVE_API_BASE + '/api/events';
+        const API_URL_REGISTRATIONS = LIVE_API_BASE + '/api/registrations';
+        const API_URL_USER_DATA = LIVE_API_BASE + '/api/users'; 
+        // ----------------------------------------
         
         // --- Element Selection ---
         const signUpRedirectButton = document.getElementById('signUpRedirect');
@@ -237,7 +266,7 @@
         // --- BOT POPUP MANAGEMENT ---
         document.addEventListener('DOMContentLoaded', () => {
             const popup = document.getElementById('welcomePopup');
-            const widget = document.getElementById('chatBotWidget'); 
+            const widget = document.getElementById('chatBotWidget');
             
             // Show popup and pointer immediately on load
             
