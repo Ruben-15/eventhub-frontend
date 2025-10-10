@@ -15,21 +15,6 @@
             font-weight: bold;
         }
         
-        /* NEW: Logo Styling for Overlay */
-        .brand-logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-        .brand-logo {
-            height: 45px; /* Adjust size as needed */
-            width: auto;
-            margin-right: 10px;
-            /* Applying filter for visibility on the default white background of the image */
-            filter: brightness(0) invert(1); 
-        }
-        
         /* Override for the brand title inside the overlay */
         .overlay .brand-title {
             color: #FFFFFF; 
@@ -94,18 +79,12 @@
         <div class="overlay-container">
             <div class="overlay">
                 <div class="overlay-panel overlay-left">
-                    <div class="brand-logo-container">
-                        <img src="assets/logo.png" alt="Event Hub Logo" class="brand-logo">
-                        <h1 class="brand-title">EVENT HUB</h1>
-                    </div>
+                    <h1 class="brand-title">EVENT HUB</h1>
                     <p>Already have an account? Log in with your username and password.</p>
                     <button class="ghost" id="signInRedirect">Sign In</button>
                 </div>
                 <div class="overlay-panel overlay-right">
-                    <div class="brand-logo-container">
-                        <img src="assets/logo.png" alt="Event Hub Logo" class="brand-logo">
-                        <h1 class="brand-title">EVENT HUB</h1>
-                    </div>
+                    <h1 class="brand-title">EVENT HUB</h1>
                     <p>New here? Enter a username and password to quickly create an account and join us!</p>
                     <button class="ghost" id="signUpRedirect">Sign Up</button>
                 </div>
@@ -122,173 +101,165 @@
         </div>
     </div>
     <script>
-    // NEW: Function to toggle the color shift animation
-    function toggleLogoColor() {
-        const logo = document.getElementById('loginPageLogo');
-        logo.classList.toggle('logo-clicked');
-    }
-    
-    // --- PARTICLE INITIATION SCRIPT: COLORS CHANGED ---
-    particlesJS('particles-js', {
-        particles: {
-            number: { value: 80, density: { enable: true, value_area: 800 } },
-            // ⭐ UPDATED PARTICLE COLOR ⭐
-            color: { value: '#FF754A' }, 
-            shape: { type: 'circle', stroke: { width: 0, color: '#000000' } },
-            opacity: { value: 0.5, random: false, anim: { enable: false } },
-            size: { value: 3, random: true, anim: { enable: false } },
-            // ⭐ UPDATED LINE COLOR ⭐
-            line_linked: { enable: true, distance: 150, color: '#FF4B2B', opacity: 0.6, width: 1 }, 
-            move: { enable: true, speed: 4, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
-        },
-        interactivity: {
-            detect_on: 'canvas', events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' }, resize: true },
-            modes: { grab: { distance: 140, line_linked: { opacity: 1 } }, push: { particles_nb: 4 } }
-        },
-        retina_detect: true
-    });
-    
-    // --- API & Data Setup (CRITICAL FIX) ---
-    // ⭐ CRITICAL FIX: CHANGED TO LIVE RENDER DOMAIN ⭐
-    const LIVE_API_BASE = 'https://eventhub-backend-xfd3.onrender.com';
-    const API_URL_EVENTS = LIVE_API_BASE + '/api/events';
-    const API_URL_REGISTRATIONS = LIVE_API_BASE + '/api/registrations';
-    const API_URL_USER_DATA = LIVE_API_BASE + '/api/users'; 
-    // ----------------------------------------
-    
-    // --- Element Selection ---
-    const signUpRedirectButton = document.getElementById('signUpRedirect');
-    const signInRedirectButton = document.getElementById('signInRedirect');
-    const container = document.getElementById('container');
-    const signUpForm = document.getElementById('signUpForm');
-    const signInForm = document.getElementById('signInForm');
-    const signUpError = document.getElementById('signUpError');
-    const signInError = document.getElementById('signInError');
-
-    // --- ANIMATION LOGIC ---
-    signUpRedirectButton.addEventListener('click', () => {
-        container.classList.add("right-panel-active");
-        signInError.textContent = '';
-    });
-
-    signInRedirectButton.addEventListener('click', () => {
-        container.classList.remove("right-panel-active");
-        signUpError.textContent = '';
-    });
-
-    // --- SIGN UP (Storage) LOGIC (UPDATED WITH TRACKING) ---
-    signUpForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        signUpError.textContent = '';
-
-        const username = document.getElementById('signup-username').value.trim();
-        const password = document.getElementById('signup-password').value;
-        // 🛑 NEW: Capture Semester 🛑
-        const semester = document.getElementById('signup-semester').value; 
-        
-        const userKey = 'user_' + username;
-
-        if (localStorage.getItem(userKey)) {
-            signUpError.textContent = 'Username already exists. Please choose another.';
-            return;
-        }
-
-        if (username.length < 3 || password.length < 5) {
-            signUpError.textContent = 'Username must be at least 3 chars and password at least 5 chars.';
-            return;
+        // NEW: Function to toggle the color shift animation
+        function toggleLogoColor() {
+            const logo = document.getElementById('loginPageLogo');
+            logo.classList.toggle('logo-clicked');
         }
         
-        // 🛑 NEW: Validate Semester Selection 🛑
-        if (!semester) {
-            signUpError.textContent = 'Please select your current semester.';
-            return;
-        }
+        // --- PARTICLE INITIATION SCRIPT: COLORS CHANGED ---
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                // ⭐ UPDATED PARTICLE COLOR ⭐
+                color: { value: '#FF754A' }, 
+                shape: { type: 'circle', stroke: { width: 0, color: '#000000' } },
+                opacity: { value: 0.5, random: false, anim: { enable: false } },
+                size: { value: 3, random: true, anim: { enable: false } },
+                // ⭐ UPDATED LINE COLOR ⭐
+                line_linked: { enable: true, distance: 150, color: '#FF4B2B', opacity: 0.6, width: 1 }, 
+                move: { enable: true, speed: 4, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
+            },
+            interactivity: {
+                detect_on: 'canvas', events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' }, resize: true },
+                modes: { grab: { distance: 140, line_linked: { opacity: 1 } }, push: { particles_nb: 4 } }
+            },
+            retina_detect: true
+        });
         
-        // ⭐ START: USER ACTIVITY TRACKING FIELDS ⭐
-        const now = new Date().toISOString(); 
-        // Store user data (now includes semester, joined date, and initial login)
-        const userData = { 
-            password: password, 
-            registeredEvents: [], 
-            // Save Semester
-            semester: semester,
-            // New tracking fields
-            joinedDate: now, 
-            lastLogin: now,
-            lastLogout: 'N/A' // Placeholder
-        };
-        // ⭐ END: USER ACTIVITY TRACKING FIELDS ⭐
-        
-        localStorage.setItem(userKey, JSON.stringify(userData));
-        
-        // Set the current user upon successful signup
-        localStorage.setItem('currentUser', username);
-        
-        alert('Account created successfully! Welcome to EVENT HUB.');
-        
-        window.location.href = 'home.html'; 
-    });
+        // --- Element Selection ---
+        const signUpRedirectButton = document.getElementById('signUpRedirect');
+        const signInRedirectButton = document.getElementById('signInRedirect');
+        const container = document.getElementById('container');
+        const signUpForm = document.getElementById('signUpForm');
+        const signInForm = document.getElementById('signInForm');
+        const signUpError = document.getElementById('signUpError');
+        const signInError = document.getElementById('signInError');
 
-    // --- SIGN IN (Validation) LOGIC (UPDATED WITH TRACKING) ---
-    signInForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        signInError.textContent = '';
+        // --- ANIMATION LOGIC ---
+        signUpRedirectButton.addEventListener('click', () => {
+            container.classList.add("right-panel-active");
+            signInError.textContent = '';
+        });
 
-        const username = document.getElementById('signin-username').value.trim();
-        const password = document.getElementById('signin-password').value;
-        const userKey = 'user_' + username;
+        signInRedirectButton.addEventListener('click', () => {
+            container.classList.remove("right-panel-active");
+            signUpError.textContent = '';
+        });
 
-        const userDataJSON = localStorage.getItem(userKey);
+        // --- SIGN UP (Storage) LOGIC (UPDATED WITH TRACKING) ---
+        signUpForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            signUpError.textContent = '';
 
-        if (userDataJSON) {
-            const userData = JSON.parse(userDataJSON);
+            const username = document.getElementById('signup-username').value.trim();
+            const password = document.getElementById('signup-password').value;
+            // 🛑 NEW: Capture Semester 🛑
+            const semester = document.getElementById('signup-semester').value; 
             
-            // Check if password matches
-            if (userData.password === password) {
-                // *** SUCCESSFUL LOGIN ***
-                localStorage.setItem('currentUser', username);
-                
-                // ⭐ START: UPDATE LAST LOGIN TIME ⭐
-                userData.lastLogin = new Date().toISOString();
-                // Preserve the other fields
-                localStorage.setItem(userKey, JSON.stringify(userData));
-                // ⭐ END: UPDATE LAST LOGIN TIME ⭐
-                
-                window.location.href = 'home.html'; 
+            const userKey = 'user_' + username;
+
+            if (localStorage.getItem(userKey)) {
+                signUpError.textContent = 'Username already exists. Please choose another.';
                 return;
             }
-        }
 
-        // *** FAILED LOGIN ***
-        signInError.textContent = 'Invalid username or password.';
-    });
-    
-    // --- BOT POPUP MANAGEMENT ---
-    document.addEventListener('DOMContentLoaded', () => {
-        const popup = document.getElementById('welcomePopup');
-        const widget = document.getElementById('chatBotWidget');
-        
-        // Show popup and pointer immediately on load
-        
-        // Set initial position using the final CSS transform values
-        setTimeout(() => {
-            // Manually apply the transition class to the widget to reveal the bubble and pointer
-            widget.classList.add('show');
-        }, 50); 
-        
-        // Hide popup after a few seconds
-        setTimeout(() => {
-            widget.classList.remove('show');
-        }, 5000); 
-
-        // Make the icon clickable (currently does nothing but looks good)
-        const icon = document.getElementById('chatBotIcon');
-        icon.addEventListener('click', () => {
-            // In a real app, this would open a chat window.
-            console.log('Chatbot icon clicked!');
+            if (username.length < 3 || password.length < 5) {
+                signUpError.textContent = 'Username must be at least 3 chars and password at least 5 chars.';
+                return;
+            }
+            
+            // 🛑 NEW: Validate Semester Selection 🛑
+            if (!semester) {
+                signUpError.textContent = 'Please select your current semester.';
+                return;
+            }
+            
+            // ⭐ START: USER ACTIVITY TRACKING FIELDS ⭐
+            const now = new Date().toISOString(); 
+            // Store user data (now includes semester, joined date, and initial login)
+            const userData = { 
+                password: password, 
+                registeredEvents: [], 
+                // Save Semester
+                semester: semester,
+                // New tracking fields
+                joinedDate: now, 
+                lastLogin: now,
+                lastLogout: 'N/A' // Placeholder
+            };
+            // ⭐ END: USER ACTIVITY TRACKING FIELDS ⭐
+            
+            localStorage.setItem(userKey, JSON.stringify(userData));
+            
+            // Set the current user upon successful signup
+            localStorage.setItem('currentUser', username);
+            
+            alert('Account created successfully! Welcome to EVENT HUB.');
+            
+            window.location.href = 'home.html'; 
         });
-    });
 
-</script>
+        // --- SIGN IN (Validation) LOGIC (UPDATED WITH TRACKING) ---
+        signInForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            signInError.textContent = '';
+
+            const username = document.getElementById('signin-username').value.trim();
+            const password = document.getElementById('signin-password').value;
+            const userKey = 'user_' + username;
+
+            const userDataJSON = localStorage.getItem(userKey);
+
+            if (userDataJSON) {
+                const userData = JSON.parse(userDataJSON);
+                
+                // Check if password matches
+                if (userData.password === password) {
+                    // *** SUCCESSFUL LOGIN ***
+                    localStorage.setItem('currentUser', username);
+                    
+                    // ⭐ START: UPDATE LAST LOGIN TIME ⭐
+                    userData.lastLogin = new Date().toISOString();
+                    // Preserve the other fields
+                    localStorage.setItem(userKey, JSON.stringify(userData));
+                    // ⭐ END: UPDATE LAST LOGIN TIME ⭐
+                    
+                    window.location.href = 'home.html'; 
+                    return;
+                }
+            }
+
+            // *** FAILED LOGIN ***
+            signInError.textContent = 'Invalid username or password.';
+        });
+        
+        // --- BOT POPUP MANAGEMENT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const popup = document.getElementById('welcomePopup');
+            const widget = document.getElementById('chatBotWidget'); 
+            
+            // Show popup and pointer immediately on load
+            
+            // Set initial position using the final CSS transform values
+            setTimeout(() => {
+                // Manually apply the transition class to the widget to reveal the bubble and pointer
+                widget.classList.add('show');
+            }, 50); 
+            
+            // Hide popup after a few seconds
+            setTimeout(() => {
+                widget.classList.remove('show');
+            }, 5000); 
+
+            // Make the icon clickable (currently does nothing but looks good)
+            const icon = document.getElementById('chatBotIcon');
+            icon.addEventListener('click', () => {
+                // In a real app, this would open a chat window.
+                console.log('Chatbot icon clicked!');
+            });
+        });
+
+    </script>
 </body>
 </html>
