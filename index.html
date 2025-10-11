@@ -30,75 +30,6 @@
             color: #FF4B2B; 
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); 
         }
-    </style>
-</head>
-<body>
-    
-    <div id="particles-js"></div>
-
-    <img src="assets/eventhub-logo.jpg" alt="Event Hub Logo" id="loginPageLogo" onclick="toggleLogoColor()">
-
-    <div class="container" id="container">
-        
-        <div class="form-container sign-up-container">
-            <form id="signUpForm" action="#">
-                <h2>Create Account</h2>
-                <span>Choose a username and password</span>
-                <input type="text" id="signup-username" placeholder="Username" required />
-                <input type="password" id="signup-password" placeholder="Password" required />
-                
-                <select id="signup-semester" required style="width: 100%; padding: 12px 15px; margin: 8px 0; border: none; border-radius: 5px; background-color: #eee; font-size: 14px;">
-                    <option value="">-- Select Your Current Semester --</option>
-                    <option value="S1">Semester 1 (S1)</option>
-                    <option value="S2">Semester 2 (S2)</option>
-                    <option value="S3">Semester 3 (S3)</option>
-                    <option value="S4">Semester 4 (S4)</option>
-                    <option value="S5">Semester 5 (S5)</option>
-                    <option value="S6">Semester 6 (S6)</option>
-                    <option value="S7">Semester 7 (S7)</option>
-                    <option value="S8">Semester 8 (S8)</option>
-                </select>
-                <button type="submit">Sign Up</button>
-                <div id="signUpError" class="error-message"></div>
-            </form>
-        </div>
-
-        <div class="form-container sign-in-container">
-            <form id="signInForm" action="#">
-                <h2>Sign In</h2>
-                <span>Enter your login details</span>
-                <input type="text" id="signin-username" placeholder="Username" required />
-                <input type="password" id="signin-password" placeholder="Password" required />
-                <a href="#">Forgot your password?</a>
-                <button type="submit">Sign In</button>
-                <div id="signInError" class="error-message"></div>
-            </form>
-        </div>
-
-        <div class="overlay-container">
-            <div class="overlay">
-                <div class="overlay-panel overlay-left">
-                    <h1 class="brand-title">EVENT HUB</h1>
-                    <p>Already have an account? Log in with your username and password.</p>
-                    <button class="ghost" id="signInRedirect">Sign In</button>
-                </div>
-                <div class="overlay-panel overlay-right">
-                    <h1 class="brand-title">EVENT HUB</h1>
-                    <p>New here? Enter a username and password to quickly create an account and join us!</p>
-                    <button class="ghost" id="signUpRedirect">Sign Up</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="chatBotWidget">
-        <div id="welcomePopup">
-            Welcome! Need <strong>Info</strong> or <strong>Help</strong>?
-        </div>
-        <div id="chatBotIcon">
-            🤖
-        </div>
-    </div>
     <script>
         // --- 1. API & Host Setup ---
         const API_HOST = 'https://eventhub-backend-4wcl.onrender.com'; // YOUR LIVE RENDER API URL
@@ -192,7 +123,7 @@
                 // Success: Get the saved user data from the API response
                 const savedUserData = await response.json();
 
-                // Save to local storage for session management only (for immediate use)
+                // Save to local storage for session management only
                 localStorage.setItem('currentUser', username);
                 localStorage.setItem('user_' + username, JSON.stringify(savedUserData)); 
                 
@@ -225,7 +156,7 @@
                 if (response.ok) {
                     // Success: User data is returned from the API
                     const userData = await response.json();
-                    
+
                     // Update last login time and session cache
                     localStorage.setItem('currentUser', username);
                     localStorage.setItem('user_' + username, JSON.stringify(userData)); 
