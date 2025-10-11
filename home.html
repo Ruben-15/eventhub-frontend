@@ -460,7 +460,7 @@
         // --- Data Fetching and Persistence ---
         async function fetchEventsData() {
             try {
-                const response = await fetch(API_URL_EVENTS);
+                const response = await fetch(API_URL);
                 if (!response.ok) {
                     throw new Error("Server error, status: " + response.status);
                 }
