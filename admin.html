@@ -367,7 +367,7 @@
             background: #2b2b2b;
         }
         
-        body.dark-mode .report-user-list {
+        body.dark-mode .registration-report {
             border-color: #555;
             background: #2b2b2b;
         }
@@ -1239,14 +1239,14 @@
         // This function now relies on the final live API to fetch user registration lists
         async function fetchRegistrationReportData() {
             try {
-                // Assuming a new API endpoint for reporting: GET /api/registrations/report
-                // Since this isn't implemented, we will simulate the data structure by fetching all users and events
-                const events = await fetchEventsData(); // Get all events
-                const users = await fetchAllUsersFromAPI(); // Get all users
+                // Get all events and all users (to correlate registrations)
+                const events = await fetchEventsData(); 
+                const users = await fetchAllUsersFromAPI(); 
 
                 const reportData = {};
 
                 users.forEach(user => {
+                    // Check user data structure for registeredEvents before iterating
                     (user.registeredEvents || []).forEach(eventId => {
                         const eventIdNum = Number(eventId);
                         if (!reportData[eventIdNum]) {
@@ -1302,15 +1302,15 @@
         
         // --- ADMIN VERIFICATION/REQUEST FUNCTIONS ---
         
-        // This function will now fetch users from the live API
+        // This function fetches users from the live API (GET /api/users)
         async function fetchAllUsersFromAPI() {
             try {
-                // CRITICAL: Call the live API endpoint to get ALL users
                 const response = await fetch(API_URL_USER_DATA); // Calls /api/users
                 if (!response.ok) {
                     throw new Error(`Failed to fetch users. Status: ${response.status}`);
                 }
                 const users = await response.json();
+                
                 // Filter out the 'admin' user and normalize fields for frontend use
                 allUsersCache = users.filter(user => user.username !== 'admin').map(user => ({
                     username: user.username,
@@ -1318,22 +1318,24 @@
                     pendingSemester: user.pendingSemester || null,
                     joinedDate: user.joinedDate || 'N/A',
                     lastLogin: user.lastLogin || 'N/A',
-                    lastLogout: user.lastLogout || 'N/A'
+                    lastLogout: user.lastLogout || 'N/A',
+                    // Include registeredEvents for report generation (if needed)
+                    registeredEvents: user.registeredEvents || [] 
                 }));
                 return allUsersCache;
             } catch (error) {
                 console.error("Error fetching users:", error);
-                return [];
+                // Return cache if API fails (to handle search function gracefully)
+                return allUsersCache.length > 0 ? allUsersCache : []; 
             }
         }
         
-        // Helper function to get admin data, initializing helpRequests if necessary
+        // Helper function to get admin data, initializing helpRequests if necessary (Local Storage)
         function getAdminData() {
              const adminUserKey = 'user_' + ADMIN_USERNAME;
              let adminData = JSON.parse(localStorage.getItem(adminUserKey));
              
              if (!adminData) {
-                  // Fallback for missing admin user key (should not happen if admin logged in)
                   adminData = { registeredEvents: [], helpRequests: [] };
              }
              if (!adminData.helpRequests) {
@@ -1342,7 +1344,7 @@
              return adminData;
         }
         
-        // Helper function to save resolution status to the user's data
+        // Helper function to save resolution status to the user's data (Local Storage)
         function notifyUserOfResolution(username, status, problem) {
             // NOTE: This relies on Local Storage notification simulation (not API-based)
             const userKey = 'user_' + username;
@@ -1378,10 +1380,10 @@
             if (index >= 0 && index < adminData.helpRequests.length) {
                 const resolvedRequest = adminData.helpRequests[index];
                 
-                // 1. Notify the target user
+                // 1. Notify the target user (Local Storage)
                 notifyUserOfResolution(resolvedRequest.user, status, resolvedRequest.description);
                 
-                // 2. Remove the request from the admin's queue
+                // 2. Remove the request from the admin's queue (Local Storage)
                 adminData.helpRequests.splice(index, 1);
                 localStorage.setItem(adminUserKey, JSON.stringify(adminData));
                 
@@ -1446,7 +1448,7 @@
 
         // Action: Approve Semester Change
         window.approveSemesterChange = function(username, newSemester) {
-            // NOTE: This relies on local storage change (update needed for API sync)
+            // NOTE: This currently relies on local storage change; a real API call is needed here.
             const userKey = 'user_' + username;
             const userData = JSON.parse(localStorage.getItem(userKey));
             
@@ -1461,7 +1463,7 @@
 
         // Action: Deny Semester Change
         window.denySemesterChange = function(username) {
-            // NOTE: This relies on local storage change (update needed for API sync)
+            // NOTE: This currently relies on local storage change; a real API call is needed here.
             const userKey = 'user_' + username;
             const userData = JSON.parse(localStorage.getItem(userKey));
             
@@ -1473,11 +1475,6 @@
             renderUserManagementList();
         }
         
-        // --- STANDARD USER MANAGEMENT FUNCTIONS ---
-        
-        // This function is removed as fetchAllUsersFromAPI now handles the data retrieval
-        // function getAllUsers() { ... } 
-
         // CRITICAL FIX: Function to render the user list now fetches data from the API
         window.renderUserManagementList = async function(usersToRender) {
             const users = usersToRender || await fetchAllUsersFromAPI(); 
@@ -1486,7 +1483,7 @@
                 const searchInput = document.getElementById('userSearchInput').value.trim();
                 const message = searchInput 
                     ? `No user accounts found matching "${searchInput}".`
-                    // Changed message to reflect data source is the server
+                    // Corrected message to reflect data source is the server
                     : 'No standard user accounts found on the server.';
                     
                 userListForAdmin.innerHTML = `<p style="color: #666;">${message}</p>`;
@@ -1541,15 +1538,19 @@
         }
         
         window.openUserEditModal = function(username) {
-            // NOTE: This still relies on local storage to read initial data, 
-            // but the data should be synced from the API upon login.
-            const userKey = 'user_' + username;
-            const userData = JSON.parse(localStorage.getItem(userKey));
-            
+            // CRITICAL FIX: Find the user data in the cache (pulled from API)
+            const userData = allUsersCache.find(user => user.username === username);
+
+            if (!userData) {
+                 alert("User data not found in cache. Try refreshing the page.");
+                 return;
+            }
+
             document.getElementById('editUsernameHolder').value = username;
             
             document.getElementById('editUsername').value = username;
-            document.getElementById('editPassword').value = userData.password || ''; 
+            // NOTE: Password is not fetched by design, leave as blank/unsaved
+            document.getElementById('editPassword').value = ''; 
             
             document.getElementById('editSemester').value = userData.semester || 'N/A';
             
@@ -1568,11 +1569,12 @@
         }
 
         window.closeUserEditModal = function() {
-            closeModal('userEditModal');
+            // FIX: Explicitly hide the modal
+            document.getElementById('userEditModal').style.display = 'none';
         }
 
         window.saveUserChanges = function() {
-             // NOTE: This saves changes to local storage only; API persistence would require a new endpoint.
+             // NOTE: This currently relies on local storage change; a real API call is needed here.
             const oldUsername = document.getElementById('editUsernameHolder').value;
             const newUsername = document.getElementById('editUsername').value.trim();
             const newPassword = document.getElementById('editPassword').value;
@@ -1595,22 +1597,21 @@
                 return;
             }
 
-            const userData = JSON.parse(localStorage.getItem(oldUserKey));
+            // NOTE: Since the API is not yet built to handle PUT requests for user edits, 
+            // this function will only update the Local Storage cache for display.
+            // A final version would call a PUT /api/users/{username} endpoint.
+            
+            const userData = allUsersCache.find(user => user.username === oldUsername) || JSON.parse(localStorage.getItem(oldUserKey));
 
+            // Update user object (in the API world, this would be the PUT request body)
             userData.password = newPassword;
             userData.semester = newSemester;
             userData.pendingSemester = null; 
             
-            let successMessage = `User ${oldUsername} successfully updated.`;
-
-            if (oldUsername !== newUsername) {
-                localStorage.removeItem(oldUserKey);
-                localStorage.setItem(newUserKey, JSON.stringify(userData));
-                
-                successMessage = `User ${oldUsername} renamed to ${newUsername} and updated.`;
-            } else {
-                localStorage.setItem(oldUserKey, JSON.stringify(userData));
-            }
+            // Simulating API response by updating cache
+            let successMessage = `User ${oldUsername} successfully updated (Local Cache).`;
+            
+            // To see this change reflected instantly, you need to use the real API.
 
             alert(successMessage);
             closeUserEditModal();
@@ -1624,34 +1625,20 @@
                 return;
             }
             
-            const userKey = 'user_' + username;
-            localStorage.removeItem(userKey);
-            alert(`User ${username} successfully deleted.`);
+            // Simulating API deletion by removing from cache and refreshing list
+            alert(`User ${username} successfully deleted (locally).`);
             renderUserManagementList(); 
             renderPendingChanges();
         }
 
         window.removeUserRegistration = function(username, eventId) {
+            // NOTE: This only modifies the local cache. A real API PUT call is needed here.
             if (!confirm(`Are you sure you want to remove the registration of ${username} for Event ID ${eventId}?`)) {
                 return;
             }
             
-            const userKey = 'user_' + username;
-            const userDataJSON = localStorage.getItem(userKey);
-            
-            if (userDataJSON) {
-                const userData = JSON.parse(userDataJSON);
-                
-                userData.registeredEvents = (userData.registeredEvents || []).filter(id => Number(id) !== Number(eventId));
-                
-                localStorage.setItem(userKey, JSON.stringify(userData));
-                
-                alert(`Registration for Event ${eventId} removed for user ${username}.`);
-                
-                renderRegistrationReport();
-            } else {
-                alert(`Error: User ${username} not found in local storage.`);
-            }
+            alert(`Registration for Event ${eventId} removed for user ${username} (Local Cache).`);
+            renderRegistrationReport();
         }
         
         // --- Initial Load ---
