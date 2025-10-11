@@ -148,7 +148,7 @@
         });
 
         // --- 2. SIGN UP (Database Persistence) LOGIC ---
-        signUpForm.addEventListener('submit', async (e) => { 
+        signUpForm.addEventListener('submit', async (e) => { // Use async
             e.preventDefault();
             signUpError.textContent = '';
 
@@ -192,7 +192,7 @@
                 // Success: Get the saved user data from the API response
                 const savedUserData = await response.json();
 
-                // Save to local storage for session management only
+                // Save to local storage for session management only (for immediate use)
                 localStorage.setItem('currentUser', username);
                 localStorage.setItem('user_' + username, JSON.stringify(savedUserData)); 
                 
@@ -205,7 +205,7 @@
         });
 
         // --- 3. SIGN IN (Database Validation) LOGIC ---
-        signInForm.addEventListener('submit', async (e) => { 
+        signInForm.addEventListener('submit', async (e) => { // Use async
             e.preventDefault();
             signInError.textContent = '';
 
@@ -225,7 +225,7 @@
                 if (response.ok) {
                     // Success: User data is returned from the API
                     const userData = await response.json();
-
+                    
                     // Update last login time and session cache
                     localStorage.setItem('currentUser', username);
                     localStorage.setItem('user_' + username, JSON.stringify(userData)); 
