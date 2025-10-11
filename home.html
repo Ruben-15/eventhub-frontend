@@ -1274,7 +1274,7 @@ This event is restricted to Semesters: ${eligibleSems}.`);
             let statusText; 
             
             // FINAL IMAGE FIX: Construct Absolute and Encoded URL 
-            const baseHost = 'http://localhost:8080';
+            const baseHost = 'https://eventhub-backend-4wcl.onrender.com';
             let imageHTML = '';
 
             if (event.imageUrl) {
@@ -1282,7 +1282,7 @@ This event is restricted to Semesters: ${eligibleSems}.`);
                 const pathSegments = relativePath.split('/');
                 const filename = pathSegments.pop();
                 const basePath = pathSegments.join('/');
-                const finalEncodedUrl = `http://localhost:8080/${basePath}/${encodeURIComponent(filename)}`;
+                const finalEncodedUrl = `${baseHost}/${basePath}/${encodeURIComponent(filename)}`;
                 imageHTML = `<img src="${finalEncodedUrl}" alt="${event.name} Image" class="event-image">`;
             } 
             
