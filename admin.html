@@ -963,11 +963,10 @@
         
         // NEW: Utility function to format ISO date string for display
         function formatUserDate(isoString) {
-            if (isoString === 'N/A' || !isoString) return 'N/A';
+            if (!isoString || isoString === 'N/A') return 'N/A';
             try {
                 const date = new Date(isoString);
                 // Use built-in locale settings for clean date and time display
-                // NOTE: Using 'en-GB' format (Day/Month/Year) which is common, but can be changed.
                 return date.toLocaleDateString('en-GB') + ' ' + date.toLocaleTimeString();
             } catch (e) {
                 return 'Invalid Date';
@@ -1210,7 +1209,7 @@
                     : 'REGISTRATION REQUIRED';
                     
                 // Display Capacity
-                const capacityDisplay = event.maxCapacity ? `Capacity: ${event.maxCapacity}` : 'Capacity: N/A';
+                const capacityDisplay = event.maxCapacity ? `Capacity: ${event.maxCapacity}` : 'N/A';
 
                 // Use a standard placeholder/initials for image URL on admin list
                 const imageUrlDisplay = event.imageUrl 
@@ -1517,7 +1516,7 @@
                             <p>Current Semester: ${user.semester} ${pendingStatus}</p>
                             
                             <p style="font-size: 0.8em; color: #999;">
-                                Joined: ${joined} | Last Login: ${lastLogin} | Last Logout: ${lastLogout}
+                                Joined: ${joined} | Last Sign-in: ${lastLogin} | Last Sign-out: ${lastLogout}
                             </p>
                         </div>
                         <div class="user-management-actions">
@@ -1560,14 +1559,16 @@
             document.getElementById('editUsernameHolder').value = username;
             
             document.getElementById('editUsername').value = username;
-            // NOTE: Password is not fetched by design, but we must use a placeholder
+            // NOTE: Password is not fetched by design, show a placeholder
             document.getElementById('editPassword').value = '********'; 
             
             document.getElementById('editSemester').value = userData.semester || 'N/A';
             
             document.getElementById('editJoined').value = formatUserDate(userData.joinedDate);
             document.getElementById('editLastLogin').value = formatUserDate(userData.lastLogin);
-            document.getElementById('editLastLogout').value = formatUserDate(userData.lastLogout);
+            
+            // FIX: Handle 'N/A' or null for lastLogout display
+            document.getElementById('editLastLogout').value = formatUserDate(userData.lastLogout) || 'N/A';
             
             const messageArea = document.getElementById('editUserMessage');
             if (userData.pendingSemester) {
@@ -1600,18 +1601,22 @@
                  return;
             }
             
-            if (!newUsername || newPassword === '********') {
-                alert('Username and Password fields must be updated to save changes.');
-                return;
+            // FIX: Only require password update if the user touched the field (it's not '********')
+            if (newPassword !== '********') {
+                if (newPassword.length < 5) {
+                    alert('New password must be at least 5 characters.');
+                    return;
+                }
+                userData.password = newPassword;
             }
-            if (newUsername.length < 3 || newPassword.length < 5) {
-                alert('Username must be at least 3 characters and Password at least 5 characters.');
+            
+            if (newUsername.length < 3) {
+                alert('Username must be at least 3 characters.');
                 return;
             }
 
             // Apply changes to the cache (this would be the PUT request body)
             userData.username = newUsername;
-            userData.password = newPassword; // NOTE: This is unsaved/unhashed locally
             userData.semester = newSemester;
             userData.pendingSemester = null; 
             
