@@ -367,6 +367,11 @@
             background: #2b2b2b;
         }
         
+        body.dark-mode .report-user-list {
+            border-color: #555;
+            background: #2b2b2b;
+        }
+
         body.dark-mode .report-user-list li {
             background: #333;
             border-bottom-color: #444;
@@ -718,7 +723,12 @@
 
 
     <script>
-        const API_URL = 'https://eventhub-backend-4wcl.onrender.com/api/events';
+        // --- 1. API & Data Setup ---
+        const API_HOST = 'https://eventhub-backend-4wcl.onrender.com'; // Live Render Host
+        const API_URL = `${API_HOST}/api/events`; // Events endpoint (used for listing and CRUD)
+        const API_URL_REGISTRATIONS = `${API_HOST}/api/registrations`;
+        const API_URL_USER_DATA = `${API_HOST}/api/users`; // User endpoint (used for Admin and registration status)
+        
         const currentUser = localStorage.getItem('currentUser');
         const addEventForm = document.getElementById('addEventForm');
         const messageElement = document.getElementById('message');
@@ -736,6 +746,7 @@
         
         // --- NEW GLOBAL CACHE for search functionality ---
         let allUsersCache = []; 
+        let eventCache = []; 
         
         // --- DARK MODE LOGIC (Copied from home.html) ---
         const darkModeToggle = document.getElementById('darkModeToggle');
@@ -759,8 +770,6 @@
         // --- END DARK MODE LOGIC ---
 
 
-        let eventCache = []; // Cache events for report use
-
         // --- Tab Logic (MODIFIED to handle 'requests' tab) ---
         window.openTab = function(tabName) {
             const tabs = document.getElementsByClassName('tab-pane');
@@ -778,12 +787,12 @@
             if (tabName === 'report') {
                 renderRegistrationReport();
             } else if (tabName === 'verification') {
-                 // Clear search bar and render list when opening tab
+                 // CRITICAL: Call the API to fetch all users when the tab is opened
                  document.getElementById('userSearchInput').value = '';
                  renderUserManagementList(); 
-                 renderPendingChanges(); // NEW: Render verification list
+                 renderPendingChanges(); 
             } else if (tabName === 'requests') {
-                 renderHelpRequests(); // NEW: Render help requests
+                 renderHelpRequests(); 
             }
         }
 
@@ -1227,37 +1236,39 @@
 
         // --- 7. Registration Report Logic (Client-Side Scan) ---
         
-        window.renderRegistrationReport = function() {
-            const reportData = {};
-            const reportHTML = [];
+        // This function now relies on the final live API to fetch user registration lists
+        async function fetchRegistrationReportData() {
+            try {
+                // Assuming a new API endpoint for reporting: GET /api/registrations/report
+                // Since this isn't implemented, we will simulate the data structure by fetching all users and events
+                const events = await fetchEventsData(); // Get all events
+                const users = await fetchAllUsersFromAPI(); // Get all users
 
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                
-                if (key.startsWith('user_')) {
-                    const username = key.substring(5); 
-                    if (username === 'admin') continue;
-                    
-                    const userData = JSON.parse(localStorage.getItem(key));
-                    
-                    if (userData && Array.isArray(userData.registeredEvents)) {
-                        
-                        userData.registeredEvents.forEach(eventId => {
-                            const eventIdNum = Number(eventId); 
-                            
-                            if (!reportData[eventIdNum]) {
-                                reportData[eventIdNum] = [];
-                            }
-                            reportData[eventIdNum].push(username);
-                        });
-                    }
-                }
+                const reportData = {};
+
+                users.forEach(user => {
+                    (user.registeredEvents || []).forEach(eventId => {
+                        const eventIdNum = Number(eventId);
+                        if (!reportData[eventIdNum]) {
+                            reportData[eventIdNum] = [];
+                        }
+                        reportData[eventIdNum].push(user.username);
+                    });
+                });
+                return reportData;
+            } catch (e) {
+                console.error("Error generating report:", e);
+                return {};
             }
-
+        }
+        
+        window.renderRegistrationReport = async function() {
+            const reportData = await fetchRegistrationReportData();
             const eventIds = Object.keys(reportData).map(Number);
+            const reportHTML = [];
             
             if (eventIds.length === 0) {
-                registrationReportContainer.innerHTML = '<p style="color: #FF4B2B;">No user registrations found on this browser.</p>';
+                registrationReportContainer.innerHTML = '<p style="color: #FF4B2B;">No user registrations found on the server.</p>';
                 return;
             }
 
@@ -1291,6 +1302,31 @@
         
         // --- ADMIN VERIFICATION/REQUEST FUNCTIONS ---
         
+        // This function will now fetch users from the live API
+        async function fetchAllUsersFromAPI() {
+            try {
+                // CRITICAL: Call the live API endpoint to get ALL users
+                const response = await fetch(API_URL_USER_DATA); // Calls /api/users
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch users. Status: ${response.status}`);
+                }
+                const users = await response.json();
+                // Filter out the 'admin' user and normalize fields for frontend use
+                allUsersCache = users.filter(user => user.username !== 'admin').map(user => ({
+                    username: user.username,
+                    semester: user.semester || 'N/A',
+                    pendingSemester: user.pendingSemester || null,
+                    joinedDate: user.joinedDate || 'N/A',
+                    lastLogin: user.lastLogin || 'N/A',
+                    lastLogout: user.lastLogout || 'N/A'
+                }));
+                return allUsersCache;
+            } catch (error) {
+                console.error("Error fetching users:", error);
+                return [];
+            }
+        }
+        
         // Helper function to get admin data, initializing helpRequests if necessary
         function getAdminData() {
              const adminUserKey = 'user_' + ADMIN_USERNAME;
@@ -1308,6 +1344,7 @@
         
         // Helper function to save resolution status to the user's data
         function notifyUserOfResolution(username, status, problem) {
+            // NOTE: This relies on Local Storage notification simulation (not API-based)
             const userKey = 'user_' + username;
             const userDataJSON = localStorage.getItem(userKey);
             
@@ -1354,8 +1391,9 @@
         }
 
         // Render Pending Semester/Profile Change Requests
-        window.renderPendingChanges = function() {
-            const users = allUsersCache; // Use the cached list
+        window.renderPendingChanges = async function() {
+            // Fetch latest user list from API
+            const users = await fetchAllUsersFromAPI(); 
             let pendingHTML = '';
             let hasPending = false;
             
@@ -1408,6 +1446,7 @@
 
         // Action: Approve Semester Change
         window.approveSemesterChange = function(username, newSemester) {
+            // NOTE: This relies on local storage change (update needed for API sync)
             const userKey = 'user_' + username;
             const userData = JSON.parse(localStorage.getItem(userKey));
             
@@ -1422,6 +1461,7 @@
 
         // Action: Deny Semester Change
         window.denySemesterChange = function(username) {
+            // NOTE: This relies on local storage change (update needed for API sync)
             const userKey = 'user_' + username;
             const userData = JSON.parse(localStorage.getItem(userKey));
             
@@ -1435,41 +1475,19 @@
         
         // --- STANDARD USER MANAGEMENT FUNCTIONS ---
         
-        // MODIFIED: Function to retrieve all users from local storage and cache the full list
-        function getAllUsers() {
-            const users = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('user_')) {
-                    const username = key.substring(5);
-                    if (username === 'admin') continue;
+        // This function is removed as fetchAllUsersFromAPI now handles the data retrieval
+        // function getAllUsers() { ... } 
 
-                    const userDataJSON = localStorage.getItem(key);
-                    const userData = JSON.parse(userDataJSON);
-                    
-                    users.push({
-                        username: username,
-                        semester: userData.semester || 'N/A',
-                        pendingSemester: userData.pendingSemester || null,
-                        joinedDate: userData.joinedDate || 'N/A',
-                        lastLogin: userData.lastLogin || 'N/A',
-                        lastLogout: userData.lastLogout || 'N/A'
-                    });
-                }
-            }
-            allUsersCache = users; // Cache the full list for searching
-            return users;
-        }
-
-        // MODIFIED: Function to render the user list, accepting an optional array of users to display
-        window.renderUserManagementList = function(usersToRender) {
-            const users = usersToRender || getAllUsers(); 
+        // CRITICAL FIX: Function to render the user list now fetches data from the API
+        window.renderUserManagementList = async function(usersToRender) {
+            const users = usersToRender || await fetchAllUsersFromAPI(); 
             
             if (users.length === 0) {
                 const searchInput = document.getElementById('userSearchInput').value.trim();
                 const message = searchInput 
                     ? `No user accounts found matching "${searchInput}".`
-                    : 'No standard user accounts found in local storage.';
+                    // Changed message to reflect data source is the server
+                    : 'No standard user accounts found on the server.';
                     
                 userListForAdmin.innerHTML = `<p style="color: #666;">${message}</p>`;
                 return;
@@ -1508,8 +1526,11 @@
             const input = document.getElementById('userSearchInput');
             const filter = input.value.toUpperCase();
 
+            // Search against the cached list (which was fetched from the API)
             if (allUsersCache.length === 0) {
-                getAllUsers();
+                 // Try fetching if cache is empty
+                 renderUserManagementList(); 
+                 return;
             }
 
             const filteredUsers = allUsersCache.filter(user => 
@@ -1520,6 +1541,8 @@
         }
         
         window.openUserEditModal = function(username) {
+            // NOTE: This still relies on local storage to read initial data, 
+            // but the data should be synced from the API upon login.
             const userKey = 'user_' + username;
             const userData = JSON.parse(localStorage.getItem(userKey));
             
@@ -1545,10 +1568,11 @@
         }
 
         window.closeUserEditModal = function() {
-            document.getElementById('userEditModal').style.display = 'none';
+            closeModal('userEditModal');
         }
 
         window.saveUserChanges = function() {
+             // NOTE: This saves changes to local storage only; API persistence would require a new endpoint.
             const oldUsername = document.getElementById('editUsernameHolder').value;
             const newUsername = document.getElementById('editUsername').value.trim();
             const newPassword = document.getElementById('editPassword').value;
@@ -1594,7 +1618,8 @@
             renderPendingChanges(); 
         }
 
-        window.deleteUser = function(username) {
+        window.deleteUser = async function(username) {
+            // NOTE: This only deletes the local storage cache; a real API call is needed to delete the DB user.
             if (!confirm(`WARNING: Are you sure you want to permanently delete the user account: ${username}? This cannot be undone.`)) {
                 return;
             }
