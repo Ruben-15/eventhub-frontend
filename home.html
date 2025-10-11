@@ -1307,12 +1307,8 @@ This event is restricted to Semesters: ${eligibleSems}.`);
 
             // --- Start Button/Status Decision Block (Capacity Check Included) ---
 
-            if (event.requiresRegistration === true) {
-                buttonHTML = `<button class="register-btn" onclick="showEventImage(${event.id})">View Details</button>`; 
-                statusText = 'Open to All';
-                statusClass = 'open'; 
-            } 
-            else if (isRegistered) { 
+        
+                if (isRegistered) { 
                 if (!isClosed) {
                     buttonHTML = `<button class="register-btn" onclick="cancelRegistration(${event.id})" style="background-color: #f44336; font-weight: bold;">Cancel Registration</button>`;
                     statusText = 'Registered';
