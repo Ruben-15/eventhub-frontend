@@ -1601,13 +1601,12 @@
                  return;
             }
             
-            // FIX: Only require password update if the user touched the field (it's not '********')
-            if (newPassword !== '********') {
-                if (newPassword.length < 5) {
-                    alert('New password must be at least 5 characters.');
-                    return;
-                }
-                userData.password = newPassword;
+            // FIX 1: Only require password update if the user touched the field (it's not '********')
+            if (newPassword !== '********' && newPassword.length < 5) {
+                alert('New password must be at least 5 characters.');
+                return;
+            } else if (newPassword !== '********') {
+                 userData.password = newPassword;
             }
             
             if (newUsername.length < 3) {
@@ -1621,6 +1620,8 @@
             userData.pendingSemester = null; 
             
             let successMessage = `User ${oldUsername} successfully updated (Local Cache).`;
+            
+            // NOTE: Final step for full implementation would be a fetch PUT request here.
             
             alert(successMessage);
             closeUserEditModal();
