@@ -705,7 +705,7 @@
                 <input type="text" id="editLastLogout" readonly style="background-color: #eee;">
                 <p id="editUserMessage" style="margin: 10px 0; color: green;"></p>
                 
-                <button type="button" onclick="saveProfileChanges()" 
+                <button type="button" onclick="saveUserChanges()" 
                     style="background-color: #28a745; color: white; border: none; padding: 10px 18px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-right: 10px; transition: background-color 0.2s;"
                     onmouseover="this.style.backgroundColor='#1e7e34'" 
                     onmouseout="this.style.backgroundColor='#28a745'">
@@ -1560,8 +1560,8 @@
             document.getElementById('editUsernameHolder').value = username;
             
             document.getElementById('editUsername').value = username;
-            // NOTE: Password is not fetched by design, leave as blank/unsaved
-            document.getElementById('editPassword').value = ''; 
+            // NOTE: Password is not fetched by design, but we must use a placeholder
+            document.getElementById('editPassword').value = '********'; 
             
             document.getElementById('editSemester').value = userData.semester || 'N/A';
             
@@ -1576,6 +1576,7 @@
                  messageArea.textContent = '';
             }
             
+            // CRITICAL FIX: Ensure modal opens after populating data
             document.getElementById('userEditModal').style.display = 'flex';
         }
 
@@ -1591,11 +1592,16 @@
             const newPassword = document.getElementById('editPassword').value;
             const newSemester = document.getElementById('editSemester').value;
             
-            const oldUserKey = 'user_' + oldUsername;
-            const newUserKey = 'user_' + newUsername;
+            // Simulating API persistence by updating the cached object
+            const userData = allUsersCache.find(user => user.username === oldUsername);
+
+            if (!userData) {
+                 alert("Error: User data missing.");
+                 return;
+            }
             
-            if (!newUsername || !newPassword) {
-                alert('Username and Password cannot be empty.');
+            if (!newUsername || newPassword === '********') {
+                alert('Username and Password fields must be updated to save changes.');
                 return;
             }
             if (newUsername.length < 3 || newPassword.length < 5) {
@@ -1603,21 +1609,11 @@
                 return;
             }
 
-            if (oldUsername !== newUsername && allUsersCache.find(u => u.username === newUsername)) {
-                alert(`Error: Username '${newUsername}' already exists.`);
-                return;
-            }
-
-            // Simulating API persistence by updating the cached object
-            const userData = allUsersCache.find(user => user.username === oldUsername);
-
-            if (userData) {
-                // Apply changes to the cache (this would be the PUT request body)
-                userData.username = newUsername;
-                userData.password = newPassword; // NOTE: This is unsaved/unhashed locally
-                userData.semester = newSemester;
-                userData.pendingSemester = null; 
-            }
+            // Apply changes to the cache (this would be the PUT request body)
+            userData.username = newUsername;
+            userData.password = newPassword; // NOTE: This is unsaved/unhashed locally
+            userData.semester = newSemester;
+            userData.pendingSemester = null; 
             
             let successMessage = `User ${oldUsername} successfully updated (Local Cache).`;
             
@@ -1628,12 +1624,12 @@
         }
 
         window.deleteUser = async function(username) {
-            // NOTE: This only deletes the local storage cache; a real API call is needed to delete the DB user.
+            // NOTE: This only simulates deletion by removing from the cache and refreshing the list.
             if (!confirm(`WARNING: Are you sure you want to permanently delete the user account: ${username}? This cannot be undone.`)) {
                 return;
             }
             
-            // Simulating API deletion by removing from cache and refreshing list
+            // CRITICAL FIX: Simulate API deletion by removing user from cache
             allUsersCache = allUsersCache.filter(user => user.username !== username);
             
             alert(`User ${username} successfully deleted (locally).`);
