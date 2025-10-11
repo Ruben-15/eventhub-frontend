@@ -19,11 +19,10 @@
         .overlay .brand-title {
             color: #FFFFFF; 
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.4); 
-            margin: 0; /* Clear default margin */
-            font-size: 38px; /* Ensure size is maintained */
+            margin: 0;
+            font-size: 38px;
         }
         .brand-title {
-             /* Preserve original brand title for forms if needed */
             font-size: 38px;
             font-weight: 900; 
             letter-spacing: 2px;
@@ -101,6 +100,9 @@
         </div>
     </div>
     <script>
+        // --- 1. API & Host Setup ---
+        const API_HOST = 'https://eventhub-backend-4wcl.onrender.com'; // YOUR LIVE RENDER API URL
+
         // NEW: Function to toggle the color shift animation
         function toggleLogoColor() {
             const logo = document.getElementById('loginPageLogo');
@@ -111,12 +113,10 @@
         particlesJS('particles-js', {
             particles: {
                 number: { value: 80, density: { enable: true, value_area: 800 } },
-                // ⭐ UPDATED PARTICLE COLOR ⭐
                 color: { value: '#FF754A' }, 
                 shape: { type: 'circle', stroke: { width: 0, color: '#000000' } },
                 opacity: { value: 0.5, random: false, anim: { enable: false } },
                 size: { value: 3, random: true, anim: { enable: false } },
-                // ⭐ UPDATED LINE COLOR ⭐
                 line_linked: { enable: true, distance: 150, color: '#FF4B2B', opacity: 0.6, width: 1 }, 
                 move: { enable: true, speed: 4, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
             },
@@ -147,115 +147,115 @@
             signUpError.textContent = '';
         });
 
-        // --- SIGN UP (Storage) LOGIC (UPDATED WITH TRACKING) ---
-        signUpForm.addEventListener('submit', (e) => {
+        // --- 2. SIGN UP (Database Persistence) LOGIC ---
+        signUpForm.addEventListener('submit', async (e) => { 
             e.preventDefault();
             signUpError.textContent = '';
 
             const username = document.getElementById('signup-username').value.trim();
             const password = document.getElementById('signup-password').value;
-            // 🛑 NEW: Capture Semester 🛑
-            const semester = document.getElementById('signup-semester').value; 
+            const semester = document.getElementById('signup-semester').value;
             
-            const userKey = 'user_' + username;
-
-            if (localStorage.getItem(userKey)) {
-                signUpError.textContent = 'Username already exists. Please choose another.';
+            // Basic local validation
+            if (username.length < 3 || password.length < 5 || !semester) {
+                signUpError.textContent = 'Please complete all fields (Username min 3, Password min 5).';
                 return;
             }
 
-            if (username.length < 3 || password.length < 5) {
-                signUpError.textContent = 'Username must be at least 3 chars and password at least 5 chars.';
-                return;
-            }
-            
-            // 🛑 NEW: Validate Semester Selection 🛑
-            if (!semester) {
-                signUpError.textContent = 'Please select your current semester.';
-                return;
-            }
-            
-            // ⭐ START: USER ACTIVITY TRACKING FIELDS ⭐
-            const now = new Date().toISOString(); 
-            // Store user data (now includes semester, joined date, and initial login)
-            const userData = { 
-                password: password, 
-                registeredEvents: [], 
-                // Save Semester
+            // Prepare data for API 
+            const now = new Date().toISOString();
+            const userData = {
+                username: username,
+                password: password,
                 semester: semester,
-                // New tracking fields
-                joinedDate: now, 
+                registeredEvents: [], 
+                joinedDate: now,
                 lastLogin: now,
-                lastLogout: 'N/A' // Placeholder
+                lastLogout: 'N/A'
             };
-            // ⭐ END: USER ACTIVITY TRACKING FIELDS ⭐
-            
-            localStorage.setItem(userKey, JSON.stringify(userData));
-            
-            // Set the current user upon successful signup
-            localStorage.setItem('currentUser', username);
-            
-            alert('Account created successfully! Welcome to EVENT HUB.');
-            
-            window.location.href = 'home.html'; 
+
+            try {
+                // ⭐ CRITICAL: Calling the live API endpoint for sign up ⭐
+                const response = await fetch(`${API_HOST}/api/users/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.status === 409) {
+                    signUpError.textContent = 'Username already exists. Please choose another.';
+                    return;
+                } else if (!response.ok) {
+                    throw new Error(`Signup failed with status: ${response.status}`);
+                }
+
+                // Success: Get the saved user data from the API response
+                const savedUserData = await response.json();
+
+                // Save to local storage for session management only
+                localStorage.setItem('currentUser', username);
+                localStorage.setItem('user_' + username, JSON.stringify(savedUserData)); 
+                
+                alert('Account created successfully! Welcome to EVENT HUB.');
+                window.location.href = 'home.html'; 
+            } catch (error) {
+                console.error("Signup error:", error);
+                signUpError.textContent = 'Could not connect to server or registration failed.';
+            }
         });
 
-        // --- SIGN IN (Validation) LOGIC (UPDATED WITH TRACKING) ---
-        signInForm.addEventListener('submit', (e) => {
+        // --- 3. SIGN IN (Database Validation) LOGIC ---
+        signInForm.addEventListener('submit', async (e) => { 
             e.preventDefault();
             signInError.textContent = '';
 
             const username = document.getElementById('signin-username').value.trim();
             const password = document.getElementById('signin-password').value;
-            const userKey = 'user_' + username;
 
-            const userDataJSON = localStorage.getItem(userKey);
+            const loginAttempt = { username: username, password: password };
 
-            if (userDataJSON) {
-                const userData = JSON.parse(userDataJSON);
-                
-                // Check if password matches
-                if (userData.password === password) {
-                    // *** SUCCESSFUL LOGIN ***
+            try {
+                // ⭐ CRITICAL: Calling the live API endpoint for login validation ⭐
+                const response = await fetch(`${API_HOST}/api/users/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(loginAttempt)
+                });
+
+                if (response.ok) {
+                    // Success: User data is returned from the API
+                    const userData = await response.json();
+
+                    // Update last login time and session cache
                     localStorage.setItem('currentUser', username);
+                    localStorage.setItem('user_' + username, JSON.stringify(userData)); 
                     
-                    // ⭐ START: UPDATE LAST LOGIN TIME ⭐
-                    userData.lastLogin = new Date().toISOString();
-                    // Preserve the other fields
-                    localStorage.setItem(userKey, JSON.stringify(userData));
-                    // ⭐ END: UPDATE LAST LOGIN TIME ⭐
-                    
-                    window.location.href = 'home.html'; 
+                    window.location.href = 'home.html';
                     return;
+                } else {
+                    // 401 Unauthorized or other failure
+                    signInError.textContent = 'Invalid username or password.';
                 }
+            } catch (error) {
+                console.error("Login error:", error);
+                signInError.textContent = 'Network or server error during login.';
             }
-
-            // *** FAILED LOGIN ***
-            signInError.textContent = 'Invalid username or password.';
         });
-        
-        // --- BOT POPUP MANAGEMENT ---
+
+        // --- BOT POPUP MANAGEMENT (Keep as is) ---
         document.addEventListener('DOMContentLoaded', () => {
-            const popup = document.getElementById('welcomePopup');
             const widget = document.getElementById('chatBotWidget'); 
             
-            // Show popup and pointer immediately on load
-            
-            // Set initial position using the final CSS transform values
             setTimeout(() => {
-                // Manually apply the transition class to the widget to reveal the bubble and pointer
                 widget.classList.add('show');
             }, 50); 
             
-            // Hide popup after a few seconds
             setTimeout(() => {
                 widget.classList.remove('show');
             }, 5000); 
 
-            // Make the icon clickable (currently does nothing but looks good)
             const icon = document.getElementById('chatBotIcon');
             icon.addEventListener('click', () => {
-                // In a real app, this would open a chat window.
                 console.log('Chatbot icon clicked!');
             });
         });
