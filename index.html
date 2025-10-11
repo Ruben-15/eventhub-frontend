@@ -225,7 +225,7 @@
                 if (response.ok) {
                     // Success: User data is returned from the API
                     const userData = await response.json();
-                    
+
                     // Update last login time and session cache
                     localStorage.setItem('currentUser', username);
                     localStorage.setItem('user_' + username, JSON.stringify(userData)); 
